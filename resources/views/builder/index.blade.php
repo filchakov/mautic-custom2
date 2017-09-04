@@ -40,7 +40,7 @@
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" type="text/javascript"></script>
 <script src="/email_builder/common.min.js"></script>
 <!-- inject:js -->
-<script src="/email_builder/config.js"></script>
+<script src="/email_builder/config.js?time={{time()}}"></script>
 <script src="/email_builder/app.js"></script>
 <script src="/email_builder/builder/builder.js"></script>
 
