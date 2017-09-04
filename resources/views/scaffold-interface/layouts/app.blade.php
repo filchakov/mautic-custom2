@@ -30,9 +30,9 @@
 				<!-- Logo -->
 				<a href="{{url('scaffold-dashboard')}}" class="logo">
 					<!-- mini logo for sidebar mini 50x50 pixels -->
-					<span class="logo-mini"><b>S</b>IN</span>
+					<span class="logo-mini"><b>Ma</b>ext</span>
 					<!-- logo for regular state and mobile devices -->
-					<span class="logo-lg"><b>ScaffoldInterface</b></span>
+					<span class="logo-lg"><b>Mautic extensions</b></span>
 				</a>
 				<!-- Header Navbar: style can be found in header.less -->
 				<nav class="navbar navbar-static-top">
@@ -42,23 +42,6 @@
 					</a>
 					<div class="navbar-custom-menu">
 						<ul class="nav navbar-nav">
-							<!-- Notification Navbar List-->
-							<li class="dropdown notifications-menu">
-								<a href="#" class="dropdown-toggle" data-toggle="dropdown">
-									<i class="fa fa-bell-o"></i>
-									<span class="label notification-label">new</span>
-								</a>
-								<ul class="dropdown-menu">
-									<li class="header">Your notifications</li>
-									<li>
-										<!-- inner menu: contains the actual data -->
-										<ul class="menu notification-menu">
-										</ul>
-									</li>
-									<li class="footer"><a href="#">View all</a></li>
-								</ul>
-							</li>
-							<!-- END notification navbar list-->
 							<li class="dropdown user user-menu">
 								<a href="#" class="dropdown-toggle" data-toggle="dropdown">
 									<img src="http://ahloman.net/wp-content/uploads/2013/06/user.jpg" class="user-image" alt="User Image">
@@ -67,7 +50,6 @@
 								<ul class="dropdown-menu">
 									<!-- User image -->
 									<li class="user-header">
-										<img src="http://ahloman.net/wp-content/uploads/2013/06/user.jpg" class="img-circle" alt="User Image">
 										<p>
 											{{Auth::user()->name}}
 										</p>
@@ -92,31 +74,19 @@
 			<aside class="main-sidebar">
 				<!-- sidebar: style can be found in sidebar.less -->
 				<section class="sidebar">
-					<!-- search form -->
-					<form action="#" method="get" class="sidebar-form">
-						<div class="input-group">
-							<input type="text" name="q" class="form-control" placeholder="Search...">
-							<span class="input-group-btn">
-								<button type="submit" name="search" id="search-btn" class="btn btn-flat"><i class="fa fa-search"></i>
-								</button>
-							</span>
-						</div>
-					</form>
-					<!-- /.search form -->
 					<!-- sidebar menu: : style can be found in sidebar.less -->
 					<ul class="sidebar-menu">
 						<li class="header">MAIN NAVIGATION</li>
 						<li class="active treeview">
-							<a href="{{url('scaffold-dashboard')}}">
-								<i class="fa fa-dashboard"></i> <span>Dashboard</span></i>
+							<a href="/email">
+								<i class="fa fa-inbox"></i> <span>Emails</span></i>
 							</a>
 						</li>
-						<li class="header">ADMINISTRATOR</li>
-						<li class="treeview"><a href="{{url('/scaffold-users')}}"><i class="fa fa-users"></i> <span>Users</span></a></li>
-						<li class="treeview"><a href="{{url('/scaffold-roles')}}"><i class="fa fa-user-plus"></i> <span>Role</span></a></li>
-						<li class="treeview"><a href="{{url('/scaffold-permissions')}}"><i class="fa fa-key"></i> <span>Permissions</span></a></li>
-						<li class="header">Scaffold Interface</li>
-						<li class="treeview"><a href="{{url('/scaffold')}}"><i class="fa fa-desktop"></i> <span>Scaffold Interface</span></a></li>
+						<li class="active treeview">
+							<a href="/project">
+								<i class="fa fa-gear"></i> <span>Projects</span></i>
+							</a>
+						</li>
 					</ul>
 				</section>
 				<!-- /.sidebar -->
