@@ -271,7 +271,7 @@ class EmailController extends Controller
         $project = Project::where('url', 'like', '%'.$request->get('project').'%')->first();
         $email = Email::where(['mautic_email_id' => $id])->first();
 
-        $body = str_replace('/email_builder/assets/default-logo.png', env('APP_URL') . '/' . $project->logo, $email->body);
+        $body = str_replace('/email_builder/assets/default-logo.png', '/' . $project->logo, $email->body);
 
         return response()->json(['body' => $body]);
     }

@@ -174,7 +174,7 @@ const emailBuilderConfigurations = {
         defaultOptions: {
             align: 'center',
             padding: ["15px", "15px", "15px", "15px"],
-            image: '/email_builder/assets/default-logo.png',
+            image: 'https://email-builder.hiretrail.com/email_builder/assets/default-logo.png',
             width: '100',
             backgroundColor: '#ffffff',
             altTag: '',
