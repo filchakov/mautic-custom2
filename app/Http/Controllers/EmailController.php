@@ -39,7 +39,7 @@ class EmailController extends Controller
         $main_template_email = 0;
 
         foreach ($projects as $key => $project){
-            $projects[$key]->emails = Email::where('project_id', $project->id)->first();
+            $projects[$key]->emails = Email::where('project_id', $project->id)->where('id', $id)->orWhere('parent_email_id', $id)->first();
 
             if(!is_null($project->emails) && $project->parent_email_id == 0){
                 $main_template_email = $project->emails->id;
@@ -267,9 +267,12 @@ class EmailController extends Controller
     }
 
     public function api_get_markup($id, Request $request){
-
         $project = Project::where('url', 'like', '%'.$request->get('project').'%')->first();
         $email = Email::where(['mautic_email_id' => $id, 'project_id' => $project->id])->first();
+
+        if(empty($email)){
+            $email = Email::where(['mautic_email_id' => $id, 'project_id' => 1])->first();
+        }
 
         $body = str_replace('/email_builder/assets/default-logo.png', '/' . $project->logo, $email->body);
         $body = str_replace(['src="/', "src='/"], ['src="https://email-builder.hiretrail.com/', "src='https://email-builder.hiretrail.com/"] . $project->logo, $body);
