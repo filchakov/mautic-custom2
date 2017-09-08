@@ -42,7 +42,7 @@
 <!-- inject:js -->
 <script src="/email_builder/config.js?time={{time()}}"></script>
 <script src="/email_builder/app.js"></script>
-<script src="/email_builder/builder/builder.js"></script>
+<script src="/email_builder/builder/builder.js?time={{time()}}"></script>
 
 <!-- endinject -->
 </body>

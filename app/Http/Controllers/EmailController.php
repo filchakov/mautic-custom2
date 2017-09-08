@@ -269,9 +269,12 @@ class EmailController extends Controller
     public function api_get_markup($id, Request $request){
 
         $project = Project::where('url', 'like', '%'.$request->get('project').'%')->first();
-        $email = Email::where(['mautic_email_id' => $id])->first();
+        $email = Email::where(['mautic_email_id' => $id, 'project_id' => $project->id])->first();
 
         $body = str_replace('/email_builder/assets/default-logo.png', '/' . $project->logo, $email->body);
+        $body = str_replace(['src="/', "src='/"], ['src="https://email-builder.hiretrail.com/', "src='https://email-builder.hiretrail.com/"] . $project->logo, $body);
+        $body = str_replace(['http://dev.webscribble.com', 'https://dev.webscribble.com'], [$project->url, $project->url], $body);
+        $body = str_replace('width:100%;height:auto;" width="100"', 'height:auto;"', $body);
 
         return response()->json(['body' => $body]);
     }

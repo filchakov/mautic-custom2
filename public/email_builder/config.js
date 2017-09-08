@@ -16,7 +16,7 @@ const defaultFontFamily = [
 ];
 
 const emailBuilderConfigurations = {
-  assetsPath: '/email_builder/assets',
+  assetsPath: 'https://email-builder.hiretrail.com/email_builder/assets',
   layoutsPath: '/email_builder/builder/layouts', // Path of layouts
   defaultLayout: 'modern', // modern or material
   defaultSkin: 'light', // light or dark
@@ -160,7 +160,7 @@ const emailBuilderConfigurations = {
           }
         }
       },
-      template: '<table class="main" align="center" width="100%" cellspacing="0" cellpadding="0" border="0" ng-style="{backgroundColor: element.options.backgroundColor}" style="display: table;" data-type="social-links">\n    <tbody>\n    <tr>\n        <td class="social" align="{{element.options.align}}" style="padding: {{ element.options.padding | arrToPadding  }}">\n            <a href="{{element.options.links.facebook.link}}" target="_blank" style="border: none;text-decoration: none;" class="facebook">\n                <img border="0" ng-if="element.options.links.facebook.active" src="/email_builder/assets/social/facebook.png">\n            </a>\n            <a href="{{element.options.links.twitter.link}}" target="_blank" style="border: none;text-decoration: none;" class="twitter">\n                <img border="0" ng-if="element.options.links.twitter.active" src="/email_builder/assets/social/twitter.png">\n            </a>\n            <a href="{{element.options.links.linkedin.link}}" target="_blank" style="border: none;text-decoration: none;" class="linkedin">\n                <img border="0" ng-if="element.options.links.linkedin.active" src="/email_builder/assets/social/linkedin.png">\n            </a>\n            <a href="{{element.options.links.youtube.link}}" target="_blank" style="border: none;text-decoration: none;" class="youtube">\n                <img border="0" ng-if="element.options.links.youtube.active" src="/email_builder/assets/social/youtube.png">\n            </a>\n        </td>\n    </tr>\n    </tbody>\n</table>'
+      template: '<table class="main" align="center" width="100%" cellspacing="0" cellpadding="0" border="0" ng-style="{backgroundColor: element.options.backgroundColor}" style="display: table;" data-type="social-links">\n    <tbody>\n    <tr>\n        <td class="social" align="{{element.options.align}}" style="padding: {{ element.options.padding | arrToPadding  }}">\n            <a href="{{element.options.links.facebook.link}}" target="_blank" style="border: none;text-decoration: none;" class="facebook">\n                <img border="0" ng-if="element.options.links.facebook.active" src="https://email-builder.hiretrail.com/email_builder/assets/social/facebook.png">\n            </a>\n            <a href="{{element.options.links.twitter.link}}" target="_blank" style="border: none;text-decoration: none;" class="twitter">\n                <img border="0" ng-if="element.options.links.twitter.active" src="https://email-builder.hiretrail.com/email_builder/assets/social/twitter.png">\n            </a>\n            <a href="{{element.options.links.linkedin.link}}" target="_blank" style="border: none;text-decoration: none;" class="linkedin">\n                <img border="0" ng-if="element.options.links.linkedin.active" src="https://email-builder.hiretrail.com/email_builder/assets/social/linkedin.png">\n            </a>\n            <a href="{{element.options.links.youtube.link}}" target="_blank" style="border: none;text-decoration: none;" class="youtube">\n                <img border="0" ng-if="element.options.links.youtube.active" src="https://email-builder.hiretrail.com/email_builder/assets/social/youtube.png">\n            </a>\n        </td>\n    </tr>\n    </tbody>\n</table>'
     },
     'logo': {
         type: 'logo',
@@ -219,7 +219,7 @@ const emailBuilderConfigurations = {
       defaultOptions: {
         align: 'center',
         padding: ["15px", "15px", "15px", "15px"],
-        image: '/email_builder/assets/350x150.jpg',
+        image: 'https://email-builder.hiretrail.com/email_builder/assets/350x150.jpg',
         width: '370',
         backgroundColor: '#ffffff',
         altTag: '',

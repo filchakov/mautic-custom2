@@ -22,9 +22,10 @@ Route::get('', function (){
 });
 Auth::routes();
 
+Route::get('/api/email/{id}', '\App\Http\Controllers\EmailController@api_get_markup')->name('email.api_get_markup');
+
 Route::group(['middleware'=> ['web','auth']],function(){
     Route::get('/email/{email_id}/project/{project_id}', '\App\Http\Controllers\EmailController@builder')->name('email.builder');
-    Route::get('/api/email/{id}', '\App\Http\Controllers\EmailController@api_get_markup')->name('email.api_get_markup');
     Route::post('/email/save_image', '\App\Http\Controllers\EmailController@save_image')->name('email.save_image');
 
 });
