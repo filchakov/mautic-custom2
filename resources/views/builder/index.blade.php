@@ -35,6 +35,15 @@
     @else
         window.email_info = {id: 0, title: ""};
     @endif
+
+    @if(is_null($email))
+            window.redirect_url = '/email';
+        @elseif($email->parent_email_id != 0)
+            window.redirect_url = '/email/' + '{{$email->parent_email_id}}' + '/customize';
+        @else
+            window.redirect_url = '/email/' + '{{$email->id}}' + '/customize';
+    @endif
+
 </script>
 
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" type="text/javascript"></script>

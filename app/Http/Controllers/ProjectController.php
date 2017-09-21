@@ -51,8 +51,12 @@ class ProjectController extends Controller
     {
         $project = new Project();
 
-        
         $project->url = $request->url;
+
+        $project->from_name = $request->from_name;
+        $project->last_name = $request->last_name;
+        $project->from_email = $request->from_email;
+        $project->relpy_to = $request->relpy_to;
 
         $url = parse_url($request->url);
 
@@ -62,6 +66,7 @@ class ProjectController extends Controller
             $project->logo = 'storage/logo/' . $filename;
         }
 
+        $project->mautic_id = 0;
         $project->save();
 
         $pusher = App::make('pusher');
@@ -128,6 +133,11 @@ class ProjectController extends Controller
         $project = Project::findOrfail($id);
 
         $project->url = $request->url;
+
+        $project->from_name = $request->from_name;
+        $project->last_name = $request->last_name;
+        $project->from_email = $request->from_email;
+        $project->relpy_to = $request->relpy_to;
 
         $url = parse_url($request->url);
 

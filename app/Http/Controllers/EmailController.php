@@ -77,29 +77,13 @@ class EmailController extends Controller
          * This script will import leads to mauntic.
          */
 
-        //($request->get('main_template_email') == 'false')? 0 : $request->get('main_template_email')
-
-        if($request->get('main_template_email') == 'false'){
-            $new_mautic_email = [
-                'name' => $request->get('name'),
-                'subject' => $request->get('name'),
-                'customHtml' => $request->get('html'),
-            ];
-
-            $settings = ['userName'   => env('MAUTIC_LOGIN'), 'password'   => env('MAUTIC_PASSWORD'), 'debug' => true];
-
-            $initAuth = new ApiAuth();
-
-            $auth = $initAuth->newAuth($settings, 'BasicAuth');
-
-            $api = new MauticApi();
-
-            $contactApi = $api->newApi('emails', $auth, env('MAUTIC_URL'));
-
-            $mautic_email = $contactApi->create($new_mautic_email);
-        } else {
+        if($request->get('main_template_email') != 'false'){
             $mautic_email['email']['id'] = Email::find($request->get('main_template_email'))->mautic_email_id;
+        } else {
+            $mautic_email['email']['id'] = 0;
         }
+
+        $parent_email_id = ($request->get('main_template_email') == 'false')? 0 : $request->get('main_template_email');
 
         $email = new Email();
         $email->title = $request->get('name');
@@ -107,18 +91,24 @@ class EmailController extends Controller
         $email->mautic_email_id = $mautic_email['email']['id'];
         $email->project_id = ($request->get('project_id') == 0)? 1 : $request->get('project_id');
         $email->json_elements = str_replace('>null<', '><', json_encode($request->toArray()));
-        $email->parent_email_id = ($request->get('main_template_email') == 'false')? 0 : $request->get('main_template_email');
+        $email->parent_email_id = $parent_email_id;
         $email->save();
 
-        $pusher = App::make('pusher');
+        if($parent_email_id == 0){
 
-        //default pusher notification.
-        //by default channel=test-channel,event=test-event
-        //Here is a pusher notification example when you create a new resource in storage.
-        //you can modify anything you want or use it wherever.
-        $pusher->trigger('test-channel',
-                         'test-event',
-                        ['message' => 'A new email has been created !!']);
+            $parent_email_id = $email->id;
+
+            foreach (Project::where('id', '>', 1)->get() as $project){
+                $email = new Email();
+                $email->title = $request->get('name');
+                $email->body = str_replace('>null<','><',$request->get('html'));
+                $email->mautic_email_id = $mautic_email['email']['id'];
+                $email->project_id = $project->id;
+                $email->json_elements = str_replace('>null<', '><', json_encode($request->toArray()));
+                $email->parent_email_id = $parent_email_id;
+                $email->save();
+            }
+        }
 
         return response()->json(['status' => true]);
     }
@@ -171,34 +161,38 @@ class EmailController extends Controller
      */
     public function update($id,Request $request)
     {
-
         $email = Email::findOrfail($id);
         $email->title = $request->get('name');
         $email->body = str_replace('>null<','><',$request->get('html'));
         $email->json_elements = str_replace('>null<', '><', json_encode($request->toArray()));
         $email->save();
 
-        if($email->parent_email_id == 0){
-            $new_mautic_email = [
-                'name' => $request->get('name'),
-                'subject' => $request->get('name'),
-                'customHtml' => $request->get('html'),
-            ];
+        $project = Project::find($email->project_id);
 
-            $settings = ['userName'   => env('MAUTIC_LOGIN'), 'password'   => env('MAUTIC_PASSWORD'), 'debug' => true];
+        $email->body = str_replace('/email_builder/assets/default-logo.png', '/' . $project->logo, $email->body);
+        $email->body = str_replace(['src="/', "src='/"], ['src="https://email-builder.hiretrail.com/'.$project->logo, "src='https://email-builder.hiretrail.com/".$project->logo], $email->body);
+        $email->body = str_replace(['http://dev.webscribble.com', 'https://dev.webscribble.com'], [$project->url, $project->url], $email->body);
+        $email->body = str_replace('width:100%;height:auto;" width="100"', 'height:auto;"', $email->body);
 
-            $initAuth = new ApiAuth();
+        $new_mautic_email = [
+            'name' => $email->title . ' | ' . $project->url,
+            'subject' => $email->title,
+            'customHtml' => $email->body,
+        ];
 
-            $auth = $initAuth->newAuth($settings, 'BasicAuth');
+        $settings = ['userName'   => env('MAUTIC_LOGIN'), 'password'   => env('MAUTIC_PASSWORD'), 'debug' => true];
 
-            $api = new MauticApi();
+        $initAuth = new ApiAuth();
 
-            $contactApi = $api->newApi('emails', $auth, env('MAUTIC_URL'));
+        $auth = $initAuth->newAuth($settings, 'BasicAuth');
 
-            $contactApi->edit($email->mautic_email_id, $new_mautic_email);
-        }
+        $api = new MauticApi();
 
-        return redirect('email');
+        $contactApi = $api->newApi('emails', $auth, env('MAUTIC_URL'));
+
+        $contactApi->edit($email->mautic_email_id, $new_mautic_email);
+
+        return response()->json(['status' => true]);
     }
 
     /**
@@ -275,7 +269,7 @@ class EmailController extends Controller
         }
 
         $body = str_replace('/email_builder/assets/default-logo.png', '/' . $project->logo, $email->body);
-        $body = str_replace(['src="/', "src='/"], ['src="https://email-builder.hiretrail.com/', "src='https://email-builder.hiretrail.com/"] . $project->logo, $body);
+        $body = str_replace(['src="/', "src='/"], ['src="https://email-builder.hiretrail.com/'.$project->logo, "src='https://email-builder.hiretrail.com/".$project->logo], $body);
         $body = str_replace(['http://dev.webscribble.com', 'https://dev.webscribble.com'], [$project->url, $project->url], $body);
         $body = str_replace('width:100%;height:auto;" width="100"', 'height:auto;"', $body);
 

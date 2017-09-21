@@ -1320,7 +1320,7 @@ angular.module('email.builder', [
                             var url_redirect = '/email';
                         } else {
                             var url_save_email = '/email/' + window.email_info.id;
-                            var url_redirect = '/email/' + window.email_info.id + '/customize';
+                            var url_redirect = window.redirect_url;//'/email/' + window.email_info.id + '/customize';
                         }
 
                         $.post(url_save_email+'?project_id='+window.project_id+'&main_template_email='+window.main_template_email, $scope.Email).then(
