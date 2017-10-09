@@ -11,8 +11,8 @@
     <form method='POST' action='{!!url("project")!!}' enctype="multipart/form-data">
         <input type='hidden' name='_token' value='{{Session::token()}}'>
         <div class="form-group">
-            <label for="url">URL</label>
-            <input id="url" name="url" type="text" required="required" class="form-control">
+            <label for="url">URL (for example <i>https://test.com</i> or <i>http://test.com</i>)</label>
+            <input id="url" name="url" type="url" pattern="^(https?://)?([a-zA-Z0-9]([a-zA-ZäöüÄÖÜ0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$" required="required" class="form-control">
         </div>
         <div class="form-group">
             <label for="from_name">From name</label>
