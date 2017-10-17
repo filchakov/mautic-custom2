@@ -55,6 +55,23 @@ class Email extends Model
             $model->body = str_replace(['http://dev.webscribble.com', 'https://dev.webscribble.com'], [$project->url, $project->url], $model->body);
             $model->body = str_replace('width:100%;height:auto;" width="100"', 'height:auto;"', $model->body);
 
+            $model->body = str_replace([
+                '{sender=project_url}',
+                '{sender=company_name}',
+                '{sender=first_name}',
+                '{sender=last_name}',
+                '{sender=email_from}',
+                '{sender=email_for_reply}',
+            ], [
+                $project->url,
+                $project->company_name,
+                $project->from_name,
+                $project->last_name,
+                $project->from_email,
+                $project->reply_to,
+            ], $model->body);
+
+
             $new_mautic_email = [
                 'name' => $model->title . ' | ' . $project->url,
                 'subject' => $model->title,

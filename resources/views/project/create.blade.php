@@ -17,7 +17,7 @@
 
         <div class="form-group">
             <label for="company_name">Company name</label>
-            <input id="company_name" name="company_name" type="text" required="required" class="form-control" value="{!!$project->company_name!!}">
+            <input id="company_name" name="company_name" type="text" required="required" class="form-control" value="">
         </div>
 
         <div class="form-group">

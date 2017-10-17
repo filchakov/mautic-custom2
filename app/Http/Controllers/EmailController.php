@@ -40,7 +40,12 @@ class EmailController extends Controller
         $main_template_email = 0;
 
         foreach ($projects as $key => $project){
-            $projects[$key]->emails = Email::where('project_id', $project->id)->where('id', $id)->orWhere('parent_email_id', $id)->first();
+
+            if(Email::where('project_id', $project->id)->where('id', $id)->count() == 1){
+                $projects[$key]->emails = Email::where('project_id', $project->id)->where('id', $id)->first();
+            } else {
+                $projects[$key]->emails = Email::where('project_id', $project->id)->where('parent_email_id', $id)->first();
+            }
 
             if(!is_null($project->emails) && $project->parent_email_id == 0){
                 $main_template_email = $project->emails->id;
@@ -190,8 +195,6 @@ class EmailController extends Controller
             $email->body = str_replace(['src="/', "src='/"], ['src="https://email-builder.hiretrail.com/'.$project->logo, "src='https://email-builder.hiretrail.com/".$project->logo], $email->body);
             $email->body = str_replace(['http://dev.webscribble.com', 'https://dev.webscribble.com'], [$project->url, $project->url], $email->body);
             $email->body = str_replace('width:100%;height:auto;" width="100"', 'height:auto;"', $email->body);
-
-            $project = Project::find($email->project_id);
 
             $email->body = str_replace([
                 '{sender=project_url}',
