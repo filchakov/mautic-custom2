@@ -13,6 +13,7 @@
             <th width="50px">#ID</th>
             <th width="200px">Logo</th>
             <th>URL</th>
+            <th></th>
             <th width="400px">Actions</th>
         </thead>
         <tbody>
@@ -23,6 +24,15 @@
                     <img height="30px" src="/{!!$project->logo!!}" />
                 </td>
                 <td>{!!$project->url!!}</td>
+                <td style="text-align: center;">
+                    @if($id == $project->emails->id)
+                        Main template
+                    @elseif($project->emails->json_elements == \App\Email::find($id)->json_elements)
+                        Template as the main
+                    @else
+                        Unique template for {{$project->url}}
+                    @endif
+                </td>
                 <td>
 
                     @if(is_null($project->emails))
@@ -34,9 +44,12 @@
                             <i class = 'fa fa-edit'></i> Edit
                         </a>
                         <a href="{{route('email.show', ['id' => $project->emails->id])}}" target="_blank" class = 'btn btn-warning'>
-                            <i class = 'fa fa-eye'> Show</i>
+                            <i class = 'fa fa-eye'> Show template</i>
                         </a>
                     @endif
+                    <a class="btn btn-primary" target="_blank" href="{{env('MAUTIC_URL')}}/email/preview/{{$project->emails->mautic_email_id}}">
+                        <i class="fa fa-external-link"> Check email on mautic</i>
+                    </a>
 
                 </td>
             </tr>

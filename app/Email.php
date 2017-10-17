@@ -29,6 +29,23 @@ class Email extends Model
     {
         parent::boot();
 
+        static::deleting(function($model){
+            $mautic_id = $model->mautic_email_id;
+
+            $settings = ['userName'   => env('MAUTIC_LOGIN'), 'password'   => env('MAUTIC_PASSWORD'), 'debug' => true];
+
+            $initAuth = new ApiAuth();
+            $auth = $initAuth->newAuth($settings, 'BasicAuth');
+            $api = new MauticApi();
+
+            $emailsApi = $api->newApi('emails', $auth, env('MAUTIC_URL'));
+
+
+            $emailsApi->edit($mautic_id, [
+                'isPublished' => 0
+            ]);
+        });
+
         static::created(function ($model) {
 
             $project = Project::find($model->project_id);

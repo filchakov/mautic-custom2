@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Email;
 use Amranidev\Ajaxis\Ajaxis;
+use Log;
 use Mautic\Auth\ApiAuth;
 use Mautic\MauticApi;
 use URL;
@@ -46,7 +47,7 @@ class EmailController extends Controller
             }
         }
 
-        return view('email.customize',compact('title', 'projects', 'main_template_email'));
+        return view('email.customize',compact('title', 'projects', 'main_template_email', 'id'));
     }
 
     /**
@@ -85,12 +86,18 @@ class EmailController extends Controller
 
         $parent_email_id = ($request->get('main_template_email') == 'false')? 0 : $request->get('main_template_email');
 
+        $json = json_decode(urldecode($request->get('email')), 1);
+
         $email = new Email();
-        $email->title = $request->get('name');
-        $email->body = str_replace('>null<','><',$request->get('html'));
+        $email->title = $json['name'];
+        $email->body = $json['html'];
+        $email->json_elements = urldecode($request->get('email'));
+        //$email->save();
+        //$email->title = $request->get('name');
+        //$email->body = str_replace('>null<','><',$request->get('html'));
         $email->mautic_email_id = $mautic_email['email']['id'];
         $email->project_id = ($request->get('project_id') == 0)? 1 : $request->get('project_id');
-        $email->json_elements = str_replace('>null<', '><', json_encode($request->toArray()));
+        //$email->json_elements = str_replace('>null<', '><', json_encode($request->toArray()));
         $email->parent_email_id = $parent_email_id;
         $email->save();
 
@@ -100,11 +107,14 @@ class EmailController extends Controller
 
             foreach (Project::where('id', '>', 1)->get() as $project){
                 $email = new Email();
-                $email->title = $request->get('name');
-                $email->body = str_replace('>null<','><',$request->get('html'));
+                //$email->title = $request->get('name');
+                //$email->body = str_replace('>null<','><',$request->get('html'));
+                $email->title = $json['name'];
+                $email->body = $json['html'];
                 $email->mautic_email_id = $mautic_email['email']['id'];
                 $email->project_id = $project->id;
-                $email->json_elements = str_replace('>null<', '><', json_encode($request->toArray()));
+                //$email->json_elements = str_replace('>null<', '><', json_encode($request->toArray()));
+                $email->json_elements = urldecode($request->get('email'));
                 $email->parent_email_id = $parent_email_id;
                 $email->save();
             }
@@ -161,36 +171,71 @@ class EmailController extends Controller
      */
     public function update($id,Request $request)
     {
-        $email = Email::findOrfail($id);
-        $email->title = $request->get('name');
-        $email->body = str_replace('>null<','><',$request->get('html'));
-        $email->json_elements = str_replace('>null<', '><', json_encode($request->toArray()));
-        $email->save();
+        $json = json_decode(urldecode($request->get('email')), 1);
 
-        $project = Project::find($email->project_id);
+        $parent_email = Email::findOrfail($id);
+        $children_emails = Email::where(['parent_email_id' => $id, 'json_elements' => $parent_email->json_elements])->get();
 
-        $email->body = str_replace('/email_builder/assets/default-logo.png', '/' . $project->logo, $email->body);
-        $email->body = str_replace(['src="/', "src='/"], ['src="https://email-builder.hiretrail.com/'.$project->logo, "src='https://email-builder.hiretrail.com/".$project->logo], $email->body);
-        $email->body = str_replace(['http://dev.webscribble.com', 'https://dev.webscribble.com'], [$project->url, $project->url], $email->body);
-        $email->body = str_replace('width:100%;height:auto;" width="100"', 'height:auto;"', $email->body);
+        $emails = Email::whereIn('id', array_merge([$parent_email->id], $children_emails->pluck('id')->toArray()))->get();
+        foreach ($emails as $email){
+            //$email = Email::findOrfail($id);
+            $email->title = $json['name'];
+            $email->body = $json['html'];
+            $email->json_elements = urldecode($request->get('email'));
+            $email->save();
 
-        $new_mautic_email = [
-            'name' => $email->title . ' | ' . $project->url,
-            'subject' => $email->title,
-            'customHtml' => $email->body,
-        ];
+            $project = Project::find($email->project_id);
 
-        $settings = ['userName'   => env('MAUTIC_LOGIN'), 'password'   => env('MAUTIC_PASSWORD'), 'debug' => true];
+            $email->body = str_replace('/email_builder/assets/default-logo.png', '/' . $project->logo, $email->body);
+            $email->body = str_replace(['src="/', "src='/"], ['src="https://email-builder.hiretrail.com/'.$project->logo, "src='https://email-builder.hiretrail.com/".$project->logo], $email->body);
+            $email->body = str_replace(['http://dev.webscribble.com', 'https://dev.webscribble.com'], [$project->url, $project->url], $email->body);
+            $email->body = str_replace('width:100%;height:auto;" width="100"', 'height:auto;"', $email->body);
 
-        $initAuth = new ApiAuth();
+            $project = Project::find($email->project_id);
 
-        $auth = $initAuth->newAuth($settings, 'BasicAuth');
+            $email->body = str_replace([
+                '{sender=project_url}',
+                '{sender=company_name}',
+                '{sender=first_name}',
+                '{sender=last_name}',
+                '{sender=email_from}',
+                '{sender=email_for_reply}',
+            ], [
+                $project->url,
+                $project->company_name,
+                $project->from_name,
+                $project->last_name,
+                $project->from_email,
+                $project->reply_to,
+            ], $email->body);
 
-        $api = new MauticApi();
+            try {
+                $new_mautic_email = [
+                    'name' => $email->title . ' | ' . $project->url,
+                    'subject' => $email->title,
+                    'customHtml' => $email->body,
+                ];
 
-        $contactApi = $api->newApi('emails', $auth, env('MAUTIC_URL'));
+                $settings = ['userName'   => env('MAUTIC_LOGIN'), 'password'   => env('MAUTIC_PASSWORD'), 'debug' => true];
 
-        $contactApi->edit($email->mautic_email_id, $new_mautic_email);
+                $initAuth = new ApiAuth();
+
+                $auth = $initAuth->newAuth($settings, 'BasicAuth');
+
+                $api = new MauticApi();
+
+                $contactApi = $api->newApi('emails', $auth, env('MAUTIC_URL'));
+
+                $contactApi->edit($email->mautic_email_id, $new_mautic_email);
+            } catch (\Exception $e){
+                Log::warninr('Change tamplate on mautic', [
+                    'error' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'host' => env('MAUTIC_URL')
+                ]);
+            }
+        }
 
         return response()->json(['status' => true]);
     }
@@ -220,9 +265,20 @@ class EmailController extends Controller
      */
     public function destroy($id)
     {
-     	$email = Email::findOrfail($id);
+        $email = Email::where(['id' => $id])->firstOrFail();
      	$email->delete();
-        return URL::to('email');
+
+     	$child_emails = Email::where([
+     	    'parent_email_id' => $id
+        ]);
+
+     	if($child_emails->count() > 0){
+     	    foreach ($child_emails->get() as $child_email){
+     	        $child_email->delete();
+            }
+        }
+
+        return redirect()->to('/email');
     }
 
     public function builder($email_id, $project_id, Request $request){
@@ -236,6 +292,8 @@ class EmailController extends Controller
         } else {
             $email = Email::find($email_id);
         }
+
+        $email->json_elements = json_decode($email->json_elements,1);
 
         return view('builder.index', compact('project', 'email', 'main_template_email'));
     }

@@ -14,6 +14,12 @@
             <label for="url">URL (for example <i>https://test.com</i> or <i>http://test.com</i>)</label>
             <input id="url" name="url" type="url" pattern="^(https?://)?([a-zA-Z0-9]([a-zA-ZäöüÄÖÜ0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$" required="required" class="form-control">
         </div>
+
+        <div class="form-group">
+            <label for="company_name">Company name</label>
+            <input id="company_name" name="company_name" type="text" required="required" class="form-control" value="{!!$project->company_name!!}">
+        </div>
+
         <div class="form-group">
             <label for="from_name">From name</label>
             <input id="from_name" name="from_name" type="text" required="required" class="form-control">

@@ -16,6 +16,11 @@
         </div>
 
         <div class="form-group">
+            <label for="company_name">Company name</label>
+            <input id="company_name" name="company_name" type="text" required="required" class="form-control" value="{!!$project->company_name!!}">
+        </div>
+
+        <div class="form-group">
             <label for="from_name">From name</label>
             <input id="from_name" name="from_name" type="text" required="required" class="form-control" value="{!!$project->from_name!!}">
         </div>

@@ -56,6 +56,7 @@ class ProjectController extends Controller
         $project->from_name = $request->from_name;
         $project->last_name = $request->last_name;
         $project->from_email = $request->from_email;
+        $project->company_name = $request->company_name;
         $project->relpy_to = $request->relpy_to;
 
         $url = parse_url($request->url);
@@ -137,6 +138,7 @@ class ProjectController extends Controller
         $project->from_name = $request->from_name;
         $project->last_name = $request->last_name;
         $project->from_email = $request->from_email;
+        $project->company_name = $request->company_name;
         $project->relpy_to = $request->relpy_to;
 
         $url = parse_url($request->url);

@@ -31,7 +31,7 @@
     window.project_id = {{isset($project->id)? $project->id : 0}};
 
     @if(!empty($email))
-        window.email_info = {!! json_encode($email) !!};
+        window.email_info = {!! $email !!};
     @else
         window.email_info = {id: 0, title: ""};
     @endif

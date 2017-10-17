@@ -1320,21 +1320,24 @@ angular.module('email.builder', [
                             var url_redirect = '/email';
                         } else {
                             var url_save_email = '/email/' + window.email_info.id;
-                            var url_redirect = window.redirect_url;//'/email/' + window.email_info.id + '/customize';
+                            var url_redirect = window.redirect_url;
                         }
 
-                        $.post(url_save_email+'?project_id='+window.project_id+'&main_template_email='+window.main_template_email, $scope.Email).then(
-                            function () {
+                        $.ajax({
+                            url: url_save_email+'?project_id='+window.project_id+'&main_template_email='+window.main_template_email,
+                            data: {email: encodeURI(JSON.stringify($scope.Email))},
+                            dataType: "json",
+                            type: 'POST',
+                            success: function (res) {
                                 utils.notify(utils.translate('email_saved')).success();
                                 utils.trackEvent('Email', 'saved');
                                 $scope.cloneEmail = JSON.parse(JSON.stringify($scope.Email));
                                 $scope.$evalAsync(function () {
                                     $scope.currentElement = $scope.Email.emailSettings
                                 })
+                                window.location.href = url_redirect;
                             }
-                        );
-
-                        window.location.href = url_redirect;
+                        });
                     }
                 }, function (err) {
                     return utils.notify(err).error()
@@ -1390,7 +1393,7 @@ angular.module('email.builder', [
             if(window.email_info.id != 0){
 
                 setTimeout(function () {
-                    var importedData = JSON.parse(window.email_info.json_elements);
+                    var importedData = window.email_info.json_elements;
 
                     $scope.$evalAsync(function () {
                         $scope.currentElement = undefined;
@@ -1416,6 +1419,7 @@ angular.module('email.builder', [
                                     $scope.currentElement = undefined;
                                     $scope.Email = importedData;
                                     $scope.cloneEmail = JSON.parse(JSON.stringify(importedData));
+                                    $scope.Email = importedData;
                                 });
                                 utils.notify(utils.translate('email_has_been_imported', {
                                     lastModified: new Date(fileToImport.lastModified).toLocaleString()

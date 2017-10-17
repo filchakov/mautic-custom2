@@ -31,7 +31,6 @@
                 <td>
                     <a data-toggle="modal" data-target="#myModal" class = 'delete btn btn-danger btn-xs' data-link = "/project/{!!$project->id!!}/deleteMsg" ><i class = 'fa fa-trash'> delete</i></a>
                     <a href = '#' class = 'viewEdit btn btn-primary btn-xs' data-link = '/project/{!!$project->id!!}/edit'><i class = 'fa fa-edit'> edit</i></a>
-                    <a href = '#' class = 'viewShow btn btn-warning btn-xs' data-link = '/project/{!!$project->id!!}'><i class = 'fa fa-eye'> info</i></a>
                 </td>
             </tr>
             @endforeach 

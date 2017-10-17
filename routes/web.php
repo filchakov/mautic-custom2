@@ -43,7 +43,7 @@ Route::group(['middleware'=> ['web','auth']],function(){
   Route::resource('email','\App\Http\Controllers\EmailController');
   Route::post('email/{id}','\App\Http\Controllers\EmailController@update');
   Route::get('email/{id}/customize','\App\Http\Controllers\EmailController@customize')->name('email.customize');
-  Route::get('email/{id}/delete','\App\Http\Controllers\EmailController@destroy');
+  Route::get('email/{id}/delete','\App\Http\Controllers\EmailController@destroy')->name('email.delete');
   Route::get('email/{id}','\App\Http\Controllers\EmailController@show')->name('email.show');
   Route::get('email/{id}/deleteMsg','\App\Http\Controllers\EmailController@DeleteMsg');
 });

@@ -24,11 +24,11 @@
                     <a href="{{route('email.customize', ['id' => $email->id])}}" class = 'btn btn-primary'>
                         <i class = 'fa fa-reorder'></i> Customize for projects
                     </a>
-                    {{--<a href="{{route('email.builder', ['email_id' => $email->id, 'project_id' => $email->project_id])}}" class = 'btn btn-primary'>
-                        <i class = 'fa fa-edit'></i> Edit
-                    </a>--}}
                     <a href="{{route('email.show', ['id' => $email->id])}}" target="_blank" class = 'btn btn-warning'>
                         <i class = 'fa fa-eye'> Show</i>
+                    </a>
+                    <a onclick="if(confirm('You are sure, that want to remove #{{$email->id}}?')){ window.location.href = '{{route('email.delete', ['id' => $email->id])}}'; } " target="_blank" class = 'btn btn-danger'>
+                        <i class = 'fa fa-remove'> Delete</i>
                     </a>
                 </td>
             </tr>
