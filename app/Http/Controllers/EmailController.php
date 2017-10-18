@@ -209,7 +209,7 @@ class EmailController extends Controller
                 $project->from_name,
                 $project->last_name,
                 $project->from_email,
-                $project->reply_to,
+                $project->relpy_to,
             ], $email->body);
 
             try {

@@ -38,6 +38,11 @@
         </div>
 
         <div class="form-group">
+            <label for="mautic_segment_id">Segment ID on <a href="{{env('MAUTIC_URL')}}/s/segments" target="_blank">Mautic</a></label>
+            <input id="mautic_segment_id" name="mautic_segment_id" type="number" required="required" class="form-control" value="{!!$project->mautic_segment_id!!}">
+        </div>
+
+        <div class="form-group">
             <label for="logo">Logo</label>
             <input type="file" name="logo" type="text" class="form-control" value="{!!$project->logo!!}" accept="image/jpeg,image/png">
             <img src="/{!!$project->logo!!}" />

@@ -58,6 +58,7 @@ class ProjectController extends Controller
         $project->from_email = $request->from_email;
         $project->company_name = $request->company_name;
         $project->relpy_to = $request->relpy_to;
+        $project->mautic_segment_id = $request->mautic_segment_id;
 
         $url = parse_url($request->url);
 
@@ -140,6 +141,7 @@ class ProjectController extends Controller
         $project->from_email = $request->from_email;
         $project->company_name = $request->company_name;
         $project->relpy_to = $request->relpy_to;
+        $project->mautic_segment_id = $request->mautic_segment_id;
 
         $url = parse_url($request->url);
 

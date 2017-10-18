@@ -68,7 +68,7 @@ class Email extends Model
                 $project->from_name,
                 $project->last_name,
                 $project->from_email,
-                $project->reply_to,
+                $project->relpy_to,
             ], $model->body);
 
 
@@ -92,28 +92,6 @@ class Email extends Model
 
             $model->mautic_email_id = $mautic_email['email']['id'];
             $model->save();
-
-            //creating segment
-            $segmentsApi = $api->newApi('segments', $auth, env('MAUTIC_URL'));
-            $segments = [
-                'name' => $model->title . ' | ' . $project->url,
-                'alias' => time(),
-                'filters' => [
-                    [
-                        'glue' => 'and',
-                        'field' => 'owner_id',
-                        'object' => 'lead',
-                        'type' => 'lookup_id',
-                        'filter' => $project->mautic_id,
-                        'display' => $project->from_name . ' ' . $project->last_name,
-                        'operator' => '='
-                    ]
-                ],
-                'isPublished' => 1
-            ];
-            $segments = $segmentsApi->create($segments);
-            \Log::info('$segments ', $segments);
-            //finish creating segment
 
             //creating campaign
             $campaignsApi = $api->newApi('campaigns', $auth, env('MAUTIC_URL'));
@@ -143,7 +121,7 @@ class Email extends Model
                 'forms' => [],
                 'lists' => [
                     [
-                        'id' => $segments['list']['id'] // Create the list first
+                        'id' => $project->mautic_segment_id // Create the list first
                     ]
                 ],
                 'canvasSettings' => [
