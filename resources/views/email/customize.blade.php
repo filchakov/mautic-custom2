@@ -60,7 +60,7 @@
     @if($projects_without_email->count() > 0)
 
         <hr/>
-        <h2>These projects don't have this email. If you want to create template for these emails, please click on green button :)</h2>
+        <h2>These projects don't have this email. If you want to create template for these emails, please click on green button</h2>
         <form method="POST" action="{{route('project.copy_emails')}}">
             {{csrf_field()}}
             <p>
