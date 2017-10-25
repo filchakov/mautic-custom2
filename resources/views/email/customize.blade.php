@@ -57,5 +57,39 @@
         </tbody>
     </table>
 
+    @if($projects_without_email->count() > 0)
+
+        <hr/>
+        <h2>These projects don't have this email. If you want to create template for these emails, please click on green button :)</h2>
+        <form method="POST" action="{{route('project.copy_emails')}}">
+            {{csrf_field()}}
+            <p>
+                <a href="#" onclick="$('[type=checkbox]').trigger('click');">Select/Unselect all</a>
+            </p>
+
+            <table width="100%" class="table table-hover">
+                <input type="hidden" name="email[{{$id}}]" value="{{$id}}"/>
+                @foreach($projects_without_email as $project)
+                    <tr>
+                        <td width="1%">
+                            <input type="checkbox" checked="checked" name="projects[{{$project->id}}]" value="{{$project->id}}" id="projects_{{$project->id}}">
+                        </td>
+                        <td width="89%">
+                            <label for="projects_{{$project->id}}"> {{$project->url}}</label>
+                        </td>
+                        <td width="5%">
+                            <a href="{{route('project.edit', ['id' => $project->id])}}" class="badge" target="_blank">
+                                Setting
+                            </a>
+                        </td>
+                    </tr>
+                @endforeach
+            </table>
+            <input type="submit" name="submit" value="Yes. Do it" class="btn btn-success btn-lg"/>
+        </form>
+
+    @endif
+
+
 </section>
 @endsection

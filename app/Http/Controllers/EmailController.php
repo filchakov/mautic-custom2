@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\CreateEmailMautic;
 use App\Project;
 use Illuminate\Support\Facades\App;
 use Illuminate\Http\Request;
@@ -39,6 +40,8 @@ class EmailController extends Controller
 
         $main_template_email = 0;
 
+        $parent_email = Email::findOrFail($id);
+
         foreach ($projects as $key => $project){
 
             if(Email::where('project_id', $project->id)->where('id', $id)->count() == 1){
@@ -47,12 +50,21 @@ class EmailController extends Controller
                 $projects[$key]->emails = Email::where('project_id', $project->id)->where('parent_email_id', $id)->first();
             }
 
+            if(empty($projects[$key]->emails)){
+                unset($projects[$key]);
+            }
+
             if(!is_null($project->emails) && $project->parent_email_id == 0){
                 $main_template_email = $project->emails->id;
             }
         }
 
-        return view('email.customize',compact('title', 'projects', 'main_template_email', 'id'));
+        $projects_without_email = Project::whereNotIn('id', Email::where(['parent_email_id' => $id])
+            ->orWhere('id', $id)
+            ->pluck('project_id')
+        )->get();
+
+        return view('email.customize',compact('title', 'projects', 'main_template_email', 'id', 'projects_without_email'));
     }
 
     /**

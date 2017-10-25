@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Email;
 use Illuminate\Support\Facades\App;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -58,7 +59,7 @@ class ProjectController extends Controller
         $project->from_email = $request->from_email;
         $project->company_name = $request->company_name;
         $project->relpy_to = $request->relpy_to;
-        $project->mautic_segment_id = $request->mautic_segment_id;
+        $project->mautic_segment_id = 0;
 
         $url = parse_url($request->url);
 
@@ -81,7 +82,53 @@ class ProjectController extends Controller
                          'test-event',
                         ['message' => 'A new project has been created !!']);
 
-        return redirect('project');
+        if($this->checkProjects()){
+            return redirect()->route('project.matcher_to_emails', ['id' => $project->id]);
+        } else {
+            return redirect('project');
+        }
+    }
+
+    public function matcher_to_emails($id){
+        $project = Project::find($id);
+
+        $emails = Email::where([
+            'project_id' => 1
+        ])->get();
+
+        return view('project.matcher_to_emails', compact('id', 'project', 'emails'));
+    }
+
+    public function copy_emails(Request $request)
+    {
+
+        $projects = $request->get('projects');
+        $emails = $request->get('email');
+
+        if(empty($projects) || empty($emails)){
+            abort(400);
+        }
+
+        foreach ($projects as $project_id){
+            $project = Project::find($project_id);
+
+            foreach ($emails as $email_id => $value) {
+                $email = Email::find($email_id);
+                if(Email::where([
+                    'parent_email_id' => $email->id,
+                    'project_id' => $project->id
+                ])->count() == 0){
+                    $copy_email = $email->replicate(['id']);
+                    $copy_email->parent_email_id = $email->id;
+                    $copy_email->project_id = $project->id;
+                    $copy_email->push();
+                }
+            }
+
+        }
+
+        return redirect()->route('email.customize', ['id' => $email_id]);
+
     }
 
     /**
@@ -118,9 +165,10 @@ class ProjectController extends Controller
             return URL::to('project/'. $id . '/edit');
         }
 
-        
+        $emails = Email::where(['project_id' => 1])->whereNotIn('id', Email::where(['project_id' => $id])->pluck('parent_email_id'))->get();
         $project = Project::findOrfail($id);
-        return view('project.edit',compact('title','project'  ));
+
+        return view('project.edit',compact('title','project', 'project', 'emails', 'id'));
     }
 
     /**
@@ -184,5 +232,9 @@ class ProjectController extends Controller
      	$project = Project::findOrfail($id);
      	$project->delete();
         return URL::to('project');
+    }
+
+    protected function checkProjects(){
+        return Email::where(['project_id' => 1])->count();
     }
 }

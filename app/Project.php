@@ -58,6 +58,27 @@ class Project extends Model
 
             $model->mautic_id = $result['user']['id'];
 
+            $segmentsApi = $api->newApi('segments', $auth, env('MAUTIC_URL'));
+            $segments = [
+                'name' => '(' . $model->from_name . ' ' . $model->last_name . ') ' . $model->url,
+                'alias' => time(),
+                'filters' => [
+                    [
+                        'glue' => 'and',
+                        'field' => 'owner_id',
+                        'object' => 'lead',
+                        'type' => 'lookup_id',
+                        'filter' => $model->mautic_id,
+                        'display' => $model->from_name . ' ' . $model->last_name,
+                        'operator' => '='
+                    ]
+                ],
+                'isPublished' => 1
+            ];
+
+            $segmentResult = $segmentsApi->create($segments);
+            $model->mautic_segment_id = $segmentResult['list']['id'];
+
             $model->save();
 
         });

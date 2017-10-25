@@ -36,6 +36,8 @@ Route::group(['middleware'=> ['web','auth']], function(){
   Route::post('project/{id}/update','\App\Http\Controllers\ProjectController@update');
   Route::get('project/{id}/delete','\App\Http\Controllers\ProjectController@destroy');
   Route::get('project/{id}/deleteMsg','\App\Http\Controllers\ProjectController@DeleteMsg');
+  Route::get('project/{id}/matcher_to_emails','\App\Http\Controllers\ProjectController@matcher_to_emails')->name('project.matcher_to_emails');
+  Route::post('project/copy_emails','\App\Http\Controllers\ProjectController@copy_emails')->name('project.copy_emails');
 });
 
 //email Routes
