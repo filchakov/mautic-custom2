@@ -119,6 +119,12 @@ class ProjectController extends Controller
                     'project_id' => $project->id
                 ])->count() == 0){
                     $copy_email = $email->replicate(['id']);
+
+                    $body = json_decode($copy_email->json_elements, 1)['html'];
+                    $body = str_replace(['src="/', "src='/"], ['src="https://email-builder.hiretrail.com/'.$project->logo, "src='https://email-builder.hiretrail.com/".$project->logo], $body);
+                    $body = str_replace(['http://dev.webscribble.com', 'https://dev.webscribble.com'], [$project->url, $project->url], $body);
+                    $copy_email->body = str_replace('width:100%;height:auto;" width="100"', 'height:auto;"', $body);
+
                     $copy_email->parent_email_id = $email->id;
                     $copy_email->project_id = $project->id;
                     $copy_email->push();
