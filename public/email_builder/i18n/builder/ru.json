@@ -93,6 +93,11 @@
 
   "footer_mailchimp_warning": "Могут возникнуть проблемы с маленькими экранами.",
 
+  "utm_source": "UTM source",
+  "utm_medium": "UTM medium",
+  "utm_name": "UTM name",
+  "utm_content": "UTM content",
+
   "delete_all_elements": "Удалить все элементы",
   "before_delete_all_elements": "Это действие удалит все элементы из строителя. Вы уверены?"
 }

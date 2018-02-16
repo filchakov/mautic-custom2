@@ -1398,6 +1398,12 @@ angular.module('email.builder', [
                     $scope.$evalAsync(function () {
                         $scope.currentElement = undefined;
                         $scope.Email = importedData;
+
+                        $scope.Email.utm_source = window.email_info.utm_source;
+                        $scope.Email.utm_name = window.email_info.utm_name;
+                        $scope.Email.utm_medium = window.email_info.utm_medium;
+                        $scope.Email.utm_content = window.email_info.utm_content;
+
                         $scope.cloneEmail = JSON.parse(JSON.stringify(importedData));
                     });
                 }, 1000);
@@ -1416,6 +1422,7 @@ angular.module('email.builder', [
                             storage.put(importedData).then(function () {
                                 utils.trackEvent('Email', 'import');
                                 $scope.$evalAsync(function () {
+                                    debugger;
                                     $scope.currentElement = undefined;
                                     $scope.Email = importedData;
                                     $scope.cloneEmail = JSON.parse(JSON.stringify(importedData));

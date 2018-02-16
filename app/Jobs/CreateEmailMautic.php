@@ -71,6 +71,12 @@ class CreateEmailMautic implements ShouldQueue
             'name' => $model->title . ' | ' . $project->url,
             'subject' => $model->title,
             'customHtml' => $model->body,
+            'utmTags' => [
+                'utmSource' => $model->utm_source,
+                'utmMedium' => $model->utm_medium,
+                'utmCampaign' => $model->utm_name,
+                'utmContent' => $model->utm_content,
+            ]
         ];
 
         $settings = ['userName'   => env('MAUTIC_LOGIN'), 'password'   => env('MAUTIC_PASSWORD'), 'debug' => true];

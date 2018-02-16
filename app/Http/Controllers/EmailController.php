@@ -105,10 +105,18 @@ class EmailController extends Controller
 
         $json = json_decode(urldecode($request->get('email')), 1);
 
+        $json = collect($json);
+
         $email = new Email();
-        $email->title = $json['name'];
-        $email->body = $json['html'];
+        $email->title = $json->get('name');
+        $email->body = $json->get('html');
         $email->json_elements = urldecode($request->get('email'));
+
+        $email->utm_source = $json->get('utm_source');
+        $email->utm_medium = $json->get('utm_medium');
+        $email->utm_name = $json->get('utm_name');
+        $email->utm_content = $json->get('utm_content');
+
         //$email->save();
         //$email->title = $request->get('name');
         //$email->body = str_replace('>null<','><',$request->get('html'));
@@ -126,10 +134,16 @@ class EmailController extends Controller
                 $email = new Email();
                 //$email->title = $request->get('name');
                 //$email->body = str_replace('>null<','><',$request->get('html'));
-                $email->title = $json['name'];
-                $email->body = $json['html'];
+                $email->title = $json->get('name');
+                $email->body = $json->get('html');
                 $email->mautic_email_id = $mautic_email['email']['id'];
                 $email->project_id = $project->id;
+
+                $email->utm_source = $json->get('utm_source');
+                $email->utm_medium = $json->get('utm_medium');
+                $email->utm_name = $json->get('utm_name');
+                $email->utm_content = $json->get('utm_content');
+
                 //$email->json_elements = str_replace('>null<', '><', json_encode($request->toArray()));
                 $email->json_elements = urldecode($request->get('email'));
                 $email->parent_email_id = $parent_email_id;
@@ -189,6 +203,7 @@ class EmailController extends Controller
     public function update($id,Request $request)
     {
         $json = json_decode(urldecode($request->get('email')), 1);
+        $json = collect($json);
 
         $parent_email = Email::findOrfail($id);
         $children_emails = Email::where(['parent_email_id' => $id, 'json_elements' => $parent_email->json_elements])->get();
@@ -196,9 +211,15 @@ class EmailController extends Controller
         $emails = Email::whereIn('id', array_merge([$parent_email->id], $children_emails->pluck('id')->toArray()))->get();
         foreach ($emails as $email){
             //$email = Email::findOrfail($id);
-            $email->title = $json['name'];
-            $email->body = $json['html'];
+            $email->title = $json->get('name');
+            $email->body = $json->get('html');
             $email->json_elements = urldecode($request->get('email'));
+
+            $email->utm_source = $json->get('utm_source');
+            $email->utm_medium = $json->get('utm_medium');
+            $email->utm_name = $json->get('utm_name');
+            $email->utm_content = $json->get('utm_content');
+
             $email->save();
 
             $project = Project::find($email->project_id);
@@ -229,6 +250,12 @@ class EmailController extends Controller
                     'name' => $email->title . ' | ' . $project->url,
                     'subject' => $email->title,
                     'customHtml' => $email->body,
+                    'utmTags' => [
+                        'utmSource' => $email->utm_source,
+                        'utmMedium' => $email->utm_medium,
+                        'utmCampaign' => $email->utm_name,
+                        'utmContent' => $email->utm_content,
+                    ]
                 ];
 
                 $settings = ['userName'   => env('MAUTIC_LOGIN'), 'password'   => env('MAUTIC_PASSWORD'), 'debug' => true];
