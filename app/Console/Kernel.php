@@ -3,6 +3,8 @@
 namespace App\Console;
 
 use App\Console\Commands\MauticSyncUTM;
+use App\Console\Commands\DeleteBouncedContacts;
+
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -14,7 +16,8 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        MauticSyncUTM::class
+        MauticSyncUTM::class,
+        DeleteBouncedContacts::class
     ];
 
     /**
@@ -25,8 +28,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')
-        //          ->hourly();
+        $schedule->command('contacts:bounced')->everyMinute()->withoutOverlapping();
     }
 
     /**
