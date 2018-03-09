@@ -585,6 +585,49 @@ angular.module('email.builder', [
                                                     }]
                                                 }]
                                             }
+                                        case 'rss':
+
+                                            var rss_content = [];
+
+                                            for (var i = 0; i < element.options.rss_items; i++){
+                                                rss_content.push('<tr class="rss-job-item">' +
+                                                    '<td>' +
+                                                    '<table width="100%">\n' +
+                                                    '      <tr>\n' +
+                                                    '           <td align="' + element.options.titleAlign + '">\n' +
+                                                    '               <a href="" class="rss_title" style="padding: ' + element.options.titlePadding.join(' ') + '; margin: 0; font-family: ' + element.options.titleFont.family + ';font-weight:  ' + element.options.titleFont.weight + '; color: ' + element.options.titleColor + ';">' + element.options.rss_feed[0].title + '</a>\n' +
+                                                    '           </td>\n' +
+                                                    '      </tr>\n' +
+                                                    '      <tr>\n' +
+                                                    '           <td align="' + element.options.descriptionAlign + '">\n' +
+                                                    '               <p class="rss_description" style="padding: ' + element.options.descriptionPadding.join(' ') + '; margin: 0; font-family: ' + element.options.descriptionFont.family + ';font-weight:  ' + element.options.descriptionFont.weight + '; color:' + element.options.descriptionColor + ';">' + element.options.rss_feed[0].description + '</p>\n' +
+                                                    '           </td>\n' +
+                                                    '      </tr>\n' +
+                                                    '</table>\n' +
+                                                    '</td>' +
+                                                    '</tr>');
+                                            }
+
+                                            return {
+                                                tagName: 'mj-section',
+                                                attributes: {
+                                                    'full-width': 'full-width',
+                                                    'background-color': element.options.backgroundColor,
+                                                },
+                                                children: [{
+                                                    tagName: 'mj-column',
+                                                    children: [{
+                                                        tagName: 'mj-table',
+                                                        attributes: {
+                                                            'font-size': '13px',
+                                                            'color': 'rgb(0, 0, 0)',
+                                                            'line-height': '20px',
+                                                            'padding': 0,
+                                                        },
+                                                        content: rss_content.join(' ')
+                                                    }]
+                                                }]
+                                            }
                                         case 'divider':
                                             return {
                                                 tagName: 'mj-section',
@@ -1232,7 +1275,27 @@ angular.module('email.builder', [
                 if (selectedNetwork) {
                     links[selectedNetwork].active = true
                 }
-            }
+            };
+
+            $scope.changeRssItems = function (new_count_items, old_count_items) {
+
+                if(new_count_items < 1 || new_count_items == '' || new_count_items == undefined){
+                    new_count_items = 1;
+                }
+
+                if(new_count_items > 12){
+                    new_count_items = 12;
+                }
+
+                var tmp = [];
+
+                for (var i=1; i <= new_count_items; i++){
+                    tmp.push($scope.currentElement.options.rss_feed[0]);
+                }
+
+                $scope.currentElement.options.rss_feed = tmp;
+
+            };
 
             /**
              * Get template by type

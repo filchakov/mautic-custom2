@@ -17,6 +17,7 @@
             <th>From name</th>
             <th>From email</th>
             <th>Reply to</th>
+            <th>Bounced emails</th>
             <th>Actions</th>
         </thead>
         <tbody>
@@ -28,6 +29,7 @@
                 <td>{!!$project->from_name!!} {!! $project->last_name !!}</td>
                 <td>{!!$project->from_email!!}</td>
                 <td>{!!$project->relpy_to!!}</td>
+                <td>{!!$project->bounced_emails!!}</td>
                 <td>
                     <a data-toggle="modal" data-target="#myModal" class = 'delete btn btn-danger btn-xs' data-link = "/project/{!!$project->id!!}/deleteMsg" ><i class = 'fa fa-trash'> delete</i></a>
                     <a href = '#' class = 'viewEdit btn btn-primary btn-xs' data-link = '/project/{!!$project->id!!}/edit'><i class = 'fa fa-edit'> edit</i></a>

@@ -186,6 +186,73 @@ const emailBuilderConfigurations = {
         },
         template: '<table width="100%" class="main" cellspacing="0" cellpadding="0" border="0" align="center" style="display: table; background-color: {{element.options.backgroundColor}};" data-type="image">\n    <tbody>\n    <tr>\n        <td align="{{ element.options.align }}" style="padding: {{ element.options.padding | arrToPadding  }};" class="image">\n          <img border="0" align="one_image" link="element.options.linkTo" style="display:block;" ng-style="{width: element.options.width}" alt="{{element.options.altTag}}" src="https://email-builder.hiretrail.com/email_builder/assets/default-logo.png" tabindex="0">       </td>\n    </tr>\n    </tbody>\n</table>'
     },
+    'rss': {
+        type: 'rss',
+        sort: 0,
+        element: {
+            type: 'rss',
+            icon: 'rss_feed',
+            primary_head: 'RSS',
+            second_head: 'rss_feed_comment'
+        },
+        defaultOptions: {
+            rss_items: 3,
+            rss_url: '/xml-feed/site/wj/action/advanced_search/keywords/+/city_state_zip',
+            rss_feed: [
+                {
+                    title: "Subject: Lorem ipsum",
+                    description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book"
+                },{
+                    title: "Subject: Lorem ipsum",
+                    description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book"
+                },{
+                    title: "Subject: Lorem ipsum",
+                    description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book"
+                }
+            ],
+            backgroundColor: '#ffffff',
+            titlePadding: ["5px", "5px", "5px", "5px"],
+            titleAlign: 'center',
+            titleFont: {
+                weight: 'normal',
+                weightOptions: ['bold', 'bolder', 'lighter', 'inherit', 'initial', 'normal', 100, 200, 300, 400, 500, 600, 700, 800, 900],
+                family: 'Arial, Helvetica, sans-serif',
+                familyOptions: defaultFontFamily
+            },
+            titleColor: '#444444',
+
+            descriptionPadding: ["5px", "5px", "5px", "5px"],
+            descriptionAlign: 'left',
+            descriptionFont: {
+                weight: 'normal',
+                weightOptions: ['bold', 'bolder', 'lighter', 'inherit', 'initial', 'normal', 100, 200, 300, 400, 500, 600, 700, 800, 900],
+                family: 'Arial, Helvetica, sans-serif',
+                familyOptions: defaultFontFamily
+            },
+            descriptionColor: '#444444'
+
+        },
+        template: '<table id="rss-wrapper" width="100%" class="main" cellspacing="0" cellpadding="0" border="0" align="center" style="display: table; background-color: {{element.options.backgroundColor}};" data-type="image">\n' +
+        '    <tbody>\n' +
+        '    <tr ng-repeat="(key, value) in element.options.rss_feed track by $index" class="rss-job-item">\n' +
+        '        <td>\n' +
+        '            <table width="100%">\n' +
+        '                <tr>\n' +
+        '                    <td align="{{ element.options.titleAlign }}" style="padding: {{ element.options.titlePadding | arrToPadding  }};">\n' +
+        '                        <a class="rss_title" style="margin: 0; font-family: {{ element.options.titleFont.family }};font-weight:  {{ element.options.titleFont.weight }}; color: {{ element.options.titleColor }};">{{value.title}}</a>\n' +
+        '                    </td>\n' +
+        '                </tr>\n' +
+        '                <tr>\n' +
+        '                    <td align="{{ element.options.descriptionAlign }}">\n' +
+        '                        <p class="rss_description" style="padding: {{ element.options.descriptionPadding | arrToPadding  }}; margin: 0; font-family: {{ element.options.descriptionFont.family }};font-weight:  {{ element.options.descriptionFont.weight }}; color: {{ element.options.descriptionColor }};">{{value.description}}</p>\n' +
+        '                    </td>\n' +
+        '                </tr>\n' +
+        '            </table>\n' +
+        '        </td>\n' +
+        '    </tr>\n' +
+        '    </tbody>\n' +
+        '</table>'
+    },
     'divider': {
       type: 'divider',
       sort: 3,

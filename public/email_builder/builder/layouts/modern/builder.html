@@ -129,7 +129,54 @@
             <div class="md-card-content">
                 <form action="#" onsubmit="return false">
                     <div ng-repeat="(key, option) in currentElement.options" ng-if="currentElement.type != 'emailSettings'" class="email-builder-element-edit-field">
+                        <div ng-if="key == 'rss_items'" class="block-properties">
+                            <h3>RSS</h3>
+                            <div class="form-row text-inputs">
+                                <div class="form-row text-inputs">
+                                    <label for="emailName">How many items must be displayed?</label>
+                                    <input type="number" min="1" max="12" required="required" id="rss_items" class="md-input" ng-model="currentElement.options.rss_items" ng-change="changeRssItems(currentElement.options.rss_items, '{{currentElement.options.rss_items}}')">
+                                </div>
+                            </div>
+                        </div>
+                        <div ng-if="key == 'rss_url'" class="block-properties">
+                            <h3>RSS</h3>
+                            <div class="form-row text-inputs">
+                                <div class="form-row text-inputs">
+                                    <label for="emailName">URL for RSS</label>
+                                    <input type="text" required="required" id="rss_url" class="md-input" ng-model="currentElement.options.rss_url">
+                                </div>
+                            </div>
+                        </div>
+                        <div ng-if="['descriptionPadding', 'titlePadding'].indexOf(key) > -1" class="block-properties">
+                            <h3>{{key | translate}}</h3>
+                            <div class="form-row padding-inputs">
+                                <label for="builder_el_o_top{{key}}" translate="builder_el_o_top"></label>
+                                <input id="builder_el_o_top{{key}}" type="text" class="md-input" ng-model="currentElement.options[key][0]">
 
+                                <label for="builder_el_o_right{{key}}" translate="builder_el_o_right"></label>
+                                <input id="builder_el_o_right{{key}}" type="text" class="md-input" ng-model="currentElement.options[key][1]">
+                            </div>
+                            <div class="form-row padding-inputs">
+                                <label for="builder_el_o_bottom{{key}}" translate="builder_el_o_bottom"></label>
+                                <input id="builder_el_o_bottom{{key}}" type="text" class="md-input" ng-model="currentElement.options[key][2]">
+
+                                <label for="builder_el_o_left{{key}}" translate="builder_el_o_left"></label>
+                                <input id="builder_el_o_left{{key}}" type="text" class="md-input" ng-model="currentElement.options[key][3]">
+                            </div>
+                        </div>
+                        <div class="block-properties" ng-if="['descriptionAlign', 'titleAlign'].indexOf(key) > -1">
+                            <h3>{{key | translate}}</h3>
+                            <div class="form-row">
+                                <div class="md-btn-group md-btn-group-justify">
+                                    <button type="button" class="md-btn-custom md-btn-sm md-btn" ng-class="{'active': option == 'left'}" ng-click="currentElement.options[key] = 'left'"
+                                            translate="left"></button>
+                                    <button type="button" class="md-btn-custom md-btn-sm md-btn" ng-class="{'active': option == 'center'}" ng-click="currentElement.options[key] = 'center'"
+                                            translate="center"></button>
+                                    <button type="button" class="md-btn-custom md-btn-sm md-btn" ng-class="{'active': option == 'right'}" ng-click="currentElement.options[key] = 'right'"
+                                            translate="right"></button>
+                                </div>
+                            </div>
+                        </div>
                         <div ng-if="key.indexOf('image') > -1" class="block-properties">
                             <div class="form-row text-inputs">
                                 <label for="builder_el_o_image_url" translate="builder_el_o_image_url"></label>
@@ -212,7 +259,7 @@
                             </div>
                         </div>
 
-                        <div class="block-properties" ng-if="key == 'backgroundColor' || key == 'color' || key == 'buttonBackgroundColor'">
+                        <div class="block-properties" ng-if="['backgroundColor', 'color', 'buttonBackgroundColor', 'descriptionColor', 'titleColor'].indexOf(key) > -1">
                             <div class="form-row text-inputs">
                                 <label for="{{key}}" ng-if="key == 'backgroundColor'">{{ 'builder_el_o_background_color'  | translateCamelCase }}</label>
                                 <label for="{{key}}" ng-if="key == 'color'">{{ 'builder_el_o_text_color'  | translateCamelCase }}</label>
@@ -279,8 +326,8 @@
                             </div>
                         </div>
 
-                        <div ng-if="key == 'font'" class="block-properties">
-                            <h3>{{'font' | translate}}</h3>
+                        <div ng-if="['titleFont', 'descriptionFont', 'font'].indexOf(key) > -1" class="block-properties">
+                            <h3>{{key | translate}}</h3>
                             <div class="form-row range-inputs" ng-if="currentElement.options[key]['size']">
                                 <label for="font-size">{{'size' | translate}}</label>
                                 <input type="range" min="10" max="40" id="font-size" ng-model="currentElement.options[key]['size']">

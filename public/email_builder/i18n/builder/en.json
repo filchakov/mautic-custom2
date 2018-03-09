@@ -92,5 +92,9 @@
   "utm_name": "UTM name",
   "utm_content": "UTM content",
   "delete_all_elements": "Delete all elements",
-  "before_delete_all_elements": "This action will delete all elements from builder. Are you sure?"
+  "before_delete_all_elements": "This action will delete all elements from builder. Are you sure?",
+
+  "padding_title": "Padding for title",
+  "padding_description": "Padding for description"
+
 }
