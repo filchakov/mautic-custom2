@@ -590,17 +590,17 @@ angular.module('email.builder', [
                                             var rss_content = [];
 
                                             for (var i = 0; i < element.options.rss_items; i++){
-                                                rss_content.push('<tr class="rss-job-item">' +
+                                                rss_content.push('<tr class="rss-job-item" data-rss-url="' + element.options.rss_url + '">' +
                                                     '<td>' +
                                                     '<table width="100%">\n' +
                                                     '      <tr>\n' +
                                                     '           <td align="' + element.options.titleAlign + '">\n' +
-                                                    '               <a href="" class="rss_title" style="padding: ' + element.options.titlePadding.join(' ') + '; margin: 0; font-family: ' + element.options.titleFont.family + ';font-weight:  ' + element.options.titleFont.weight + '; color: ' + element.options.titleColor + ';">' + element.options.rss_feed[0].title + '</a>\n' +
+                                                    '               <a target="_blank" href="" class="rss-title" style="padding: ' + element.options.titlePadding.join(' ') + '; margin: 0; font-family: ' + element.options.titleFont.family + ';font-weight:  ' + element.options.titleFont.weight + '; color: ' + element.options.titleColor + ';">' + element.options.rss_feed[0].title + '</a>\n' +
                                                     '           </td>\n' +
                                                     '      </tr>\n' +
                                                     '      <tr>\n' +
                                                     '           <td align="' + element.options.descriptionAlign + '">\n' +
-                                                    '               <p class="rss_description" style="padding: ' + element.options.descriptionPadding.join(' ') + '; margin: 0; font-family: ' + element.options.descriptionFont.family + ';font-weight:  ' + element.options.descriptionFont.weight + '; color:' + element.options.descriptionColor + ';">' + element.options.rss_feed[0].description + '</p>\n' +
+                                                    '               <p class="rss-description" style="padding: ' + element.options.descriptionPadding.join(' ') + '; margin: 0; font-family: ' + element.options.descriptionFont.family + ';font-weight:  ' + element.options.descriptionFont.weight + '; color:' + element.options.descriptionColor + ';">' + element.options.rss_feed[0].description + '</p>\n' +
                                                     '           </td>\n' +
                                                     '      </tr>\n' +
                                                     '</table>\n' +
@@ -613,6 +613,7 @@ angular.module('email.builder', [
                                                 attributes: {
                                                     'full-width': 'full-width',
                                                     'background-color': element.options.backgroundColor,
+                                                    'css-class': 'rss-wrapper'
                                                 },
                                                 children: [{
                                                     tagName: 'mj-column',

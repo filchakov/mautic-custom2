@@ -232,19 +232,19 @@ const emailBuilderConfigurations = {
             descriptionColor: '#444444'
 
         },
-        template: '<table id="rss-wrapper" width="100%" class="main" cellspacing="0" cellpadding="0" border="0" align="center" style="display: table; background-color: {{element.options.backgroundColor}};" data-type="image">\n' +
+        template: '<table width="100%" class="main rss-wrapper" cellspacing="0" cellpadding="0" border="0" align="center" style="display: table; background-color: {{element.options.backgroundColor}};" data-type="image">\n' +
         '    <tbody>\n' +
         '    <tr ng-repeat="(key, value) in element.options.rss_feed track by $index" class="rss-job-item">\n' +
         '        <td>\n' +
         '            <table width="100%">\n' +
         '                <tr>\n' +
         '                    <td align="{{ element.options.titleAlign }}" style="padding: {{ element.options.titlePadding | arrToPadding  }};">\n' +
-        '                        <a class="rss_title" style="margin: 0; font-family: {{ element.options.titleFont.family }};font-weight:  {{ element.options.titleFont.weight }}; color: {{ element.options.titleColor }};">{{value.title}}</a>\n' +
+        '                        <a target="_blank" class="rss-title" style="margin: 0; font-family: {{ element.options.titleFont.family }};font-weight:  {{ element.options.titleFont.weight }}; color: {{ element.options.titleColor }};">{{value.title}}</a>\n' +
         '                    </td>\n' +
         '                </tr>\n' +
         '                <tr>\n' +
         '                    <td align="{{ element.options.descriptionAlign }}">\n' +
-        '                        <p class="rss_description" style="padding: {{ element.options.descriptionPadding | arrToPadding  }}; margin: 0; font-family: {{ element.options.descriptionFont.family }};font-weight:  {{ element.options.descriptionFont.weight }}; color: {{ element.options.descriptionColor }};">{{value.description}}</p>\n' +
+        '                        <p class="rss-description" style="padding: {{ element.options.descriptionPadding | arrToPadding  }}; margin: 0; font-family: {{ element.options.descriptionFont.family }};font-weight:  {{ element.options.descriptionFont.weight }}; color: {{ element.options.descriptionColor }};">{{value.description}}</p>\n' +
         '                    </td>\n' +
         '                </tr>\n' +
         '            </table>\n' +
