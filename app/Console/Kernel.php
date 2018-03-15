@@ -3,6 +3,7 @@
 namespace App\Console;
 
 use App\Console\Commands\MauticSyncUTM;
+use App\Console\Commands\AddTagsForAllLeads;
 use App\Console\Commands\DeleteBouncedContacts;
 
 use Illuminate\Console\Scheduling\Schedule;
@@ -17,7 +18,8 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         MauticSyncUTM::class,
-        DeleteBouncedContacts::class
+        DeleteBouncedContacts::class,
+        AddTagsForAllLeads::class
     ];
 
     /**
