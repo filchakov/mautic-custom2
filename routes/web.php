@@ -22,6 +22,8 @@ Route::get('', function (){
 });
 Auth::routes();
 
+Route::post('/webhooks/lead', 'WebhookController@create')->name('lead.create');
+
 Route::get('/api/email/{id}', '\App\Http\Controllers\EmailController@api_get_markup')->name('email.api_get_markup');
 
 Route::group(['middleware'=> ['web','auth']],function(){

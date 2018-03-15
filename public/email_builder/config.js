@@ -197,7 +197,7 @@ const emailBuilderConfigurations = {
         },
         defaultOptions: {
             rss_items: 3,
-            rss_url: '/xml-feed/site/wj/action/advanced_search/keywords/+/city_state_zip',
+            rss_url: '{sender=project_url}/xml-feed/site/wj/action/advanced_search/keywords//city_state_zip',
             rss_feed: [
                 {
                     title: "Subject: Lorem ipsum",
