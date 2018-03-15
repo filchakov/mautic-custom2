@@ -44,13 +44,9 @@
           {
             "group": "Parameter",
             "type": "String",
-            "allowedValues": [
-              "\"job_seeker\"",
-              "\"member\""
-            ],
-            "optional": false,
-            "field": "type_account",
-            "description": "<p>Type account. This field supports multiple types, with delimiter &quot;,&quot;. For example, if you want to create contact with both types, you have to fill this field like &quot;job_seeker, member&quot;. If you will provide some other word (than &quot;job_seeker&quot;, &quot;member&quot;) in this string - this tag will be ignored. You can use only tags &quot;job_seeker&quot;, &quot;member&quot; in this field.</p>"
+            "optional": true,
+            "field": "tags",
+            "description": "<p>Tags</p>"
           },
           {
             "group": "Parameter",
@@ -141,13 +137,9 @@
           {
             "group": "Success 200",
             "type": "String",
-            "allowedValues": [
-              "\"job_seeker\"",
-              "\"member\""
-            ],
             "optional": false,
-            "field": "data.type_account",
-            "description": "<p>Type account</p>"
+            "field": "data.tags",
+            "description": "<p>Tags</p>"
           },
           {
             "group": "Success 200",

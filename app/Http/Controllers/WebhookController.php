@@ -21,7 +21,7 @@ class WebhookController extends Controller
      * @apiParam {String} firstname First name
      * @apiParam {String} lastname Last name
      * @apiParam {String} email Email address (Example: lead@company.com)
-     * @apiParam {String="job_seeker","member"} {type_account=job_seeker} type_account Type account. This field supports multiple types, with delimiter ",". For example, if you want to create contact with both types, you have to fill this field like "job_seeker, member". If you will provide some other word (than "job_seeker", "member") in this string - this tag will be ignored. You can use only tags "job_seeker", "member" in this field.
+     * @apiParam {String} [tags] Tags
      *
      * @apiParam {String} [phone] Phone number
      * @apiParam {String} [website] Website
@@ -35,7 +35,7 @@ class WebhookController extends Controller
      * @apiSuccess {Boolean=true} status Status request
      * @apiSuccess {Object} data Lead profile information
      * @apiSuccess {Number} data.id Lead's ID
-     * @apiSuccess {String="job_seeker","member"} data.type_account Type account
+     * @apiSuccess {String} data.tags Tags
      * @apiSuccess {String} data.firstname First name
      * @apiSuccess {String} data.lastname Last name
      * @apiSuccess {String} data.email Email address
@@ -93,22 +93,10 @@ class WebhookController extends Controller
         }
 
 
-        $type_account_request = $request->get('type_account', 'job_seeker');
-
-        $type_account = [];
-
-        foreach (explode(',', $type_account_request) as $tag){
-            $tag = trim($tag);
-
-            if(in_array($tag, ['job_seeker', 'member'])){
-                $type_account[$tag] = $tag;
-            }
-        }
-
-        $type_account = array_values($type_account);
-
-        if(empty($type_account)){
-            $type_account[] = 'job_seeker';
+        if(!empty($request->get('tags'))){
+            $tags = explode(',', $request->get('tags'));
+        } else {
+            $tags = [];
         }
 
         $email = $request->get('email', false);
@@ -141,7 +129,7 @@ class WebhookController extends Controller
             $contact = $contactApi->create(
                 array_merge([
                     'owner' => $project->mautic_id,
-                    'tags' => $type_account
+                    'tags' => $tags
                 ], $request->toArray())
             );
 
@@ -149,7 +137,7 @@ class WebhookController extends Controller
 
                 $result_data = [
                     'id' => $contact['contact']['id'],
-                    'type_account' => implode(',', $type_account),
+                    'tags' => implode(',', $tags),
                 ];
 
                 foreach ($request->toArray() as $name => $value) {
