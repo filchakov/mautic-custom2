@@ -50,7 +50,7 @@
             ],
             "optional": false,
             "field": "type_account",
-            "description": "<p>Type account</p>"
+            "description": "<p>Type account. This field supports multiple types, with delimiter &quot;,&quot;. For example, if you want to create contact with both types, you have to fill this field like &quot;job_seeker, member&quot;. If you will provide some other word (than &quot;job_seeker&quot;, &quot;member&quot;) in this string - this tag will be ignored. You can use only tags &quot;job_seeker&quot;, &quot;member&quot; in this field.</p>"
           },
           {
             "group": "Parameter",

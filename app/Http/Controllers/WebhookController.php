@@ -21,7 +21,7 @@ class WebhookController extends Controller
      * @apiParam {String} firstname First name
      * @apiParam {String} lastname Last name
      * @apiParam {String} email Email address (Example: lead@company.com)
-     * @apiParam {String="job_seeker","member"} {type_account=job_seeker} type_account Type account
+     * @apiParam {String="job_seeker","member"} {type_account=job_seeker} type_account Type account. This field supports multiple types, with delimiter ",". For example, if you want to create contact with both types, you have to fill this field like "job_seeker, member". If you will provide some other word (than "job_seeker", "member") in this string - this tag will be ignored. You can use only tags "job_seeker", "member" in this field.
      *
      * @apiParam {String} [phone] Phone number
      * @apiParam {String} [website] Website
@@ -92,10 +92,23 @@ class WebhookController extends Controller
             }
         }
 
-        if(in_array($request->get('type_account', false), ['job_seeker', 'member'])){
-            $type_account = $request->get('type_account');
-        } else {
-            $type_account = 'job_seeker';
+
+        $type_account_request = $request->get('type_account', 'job_seeker');
+
+        $type_account = [];
+
+        foreach (explode(',', $type_account_request) as $tag){
+            $tag = trim($tag);
+
+            if(in_array($tag, ['job_seeker', 'member'])){
+                $type_account[$tag] = $tag;
+            }
+        }
+
+        $type_account = array_values($type_account);
+
+        if(empty($type_account)){
+            $type_account[] = 'job_seeker';
         }
 
         $email = $request->get('email', false);
@@ -128,7 +141,7 @@ class WebhookController extends Controller
             $contact = $contactApi->create(
                 array_merge([
                     'owner' => $project->mautic_id,
-                    'tags' => [$type_account]
+                    'tags' => $type_account
                 ], $request->toArray())
             );
 
@@ -136,7 +149,7 @@ class WebhookController extends Controller
 
                 $result_data = [
                     'id' => $contact['contact']['id'],
-                    'type_account' => $type_account,
+                    'type_account' => implode(',', $type_account),
                 ];
 
                 foreach ($request->toArray() as $name => $value) {
