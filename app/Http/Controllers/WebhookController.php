@@ -21,8 +21,7 @@ class WebhookController extends Controller
      * @apiParam {String} firstname First name
      * @apiParam {String} lastname Last name
      * @apiParam {String} email Email address (Example: lead@company.com)
-     * @apiParam {String} [tags] Tags
-     *
+     * @apiParam {String} [tags] Tags (field supports multiple types, with delimiter ",". Example "job_seeker,member")
      * @apiParam {String} [phone] Phone number
      * @apiParam {String} [website] Website
      * @apiParam {String} [city] City
@@ -35,7 +34,7 @@ class WebhookController extends Controller
      * @apiSuccess {Boolean=true} status Status request
      * @apiSuccess {Object} data Lead profile information
      * @apiSuccess {Number} data.id Lead's ID
-     * @apiSuccess {String} data.tags Tags
+     * @apiSuccess {String} [data.tags] Tags
      * @apiSuccess {String} data.firstname First name
      * @apiSuccess {String} data.lastname Last name
      * @apiSuccess {String} data.email Email address

@@ -46,7 +46,7 @@ define({ "api": [
             "type": "String",
             "optional": true,
             "field": "tags",
-            "description": "<p>Tags</p>"
+            "description": "<p>Tags (field supports multiple types, with delimiter &quot;,&quot;. Example &quot;job_seeker,member&quot;)</p>"
           },
           {
             "group": "Parameter",
@@ -137,7 +137,7 @@ define({ "api": [
           {
             "group": "Success 200",
             "type": "String",
-            "optional": false,
+            "optional": true,
             "field": "data.tags",
             "description": "<p>Tags</p>"
           },
