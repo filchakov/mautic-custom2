@@ -25,6 +25,16 @@ class Project extends Model
         return $this->hasMany('App\Email', 'project_id', 'id');
     }
 
+    /**
+     * @return array
+     */
+    public function getSegmentsCounterAttribute(){
+        return [
+            'total' => Segment::count(),
+            'created' => SegmentsToProjects::where('project_id', $this->id)->count()
+        ];
+    }
+
     static function boot()
     {
         parent::boot();

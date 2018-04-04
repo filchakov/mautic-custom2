@@ -30,6 +30,9 @@
 
     window.project_id = {{isset($project->id)? $project->id : 0}};
 
+    window.projects = {!! json_encode(\request()->get('projects', [])) !!};
+    window.segment_id = {{\request()->get('segment_id', 0)}};
+
     @if(!empty($email))
         window.email_info = {!! $email !!};
     @else

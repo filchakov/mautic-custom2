@@ -51,9 +51,6 @@ class AddTagsForAllLeads extends Command
 
         $contacts = $emailsApi->getList("", $page, $per_page)['contacts'];
 
-        $file_without_owner = __DIR__ . '/../../../leads_without_owner.csv';
-        file_put_contents($file_without_owner, '');
-
         $leads_updated = 1;
 
         while (!empty($contacts)){
@@ -84,8 +81,6 @@ class AddTagsForAllLeads extends Command
                         $contact['fields']['core']['position']['value'],
                         $contact['fields']['core']['email']['value'],
                     ];
-
-                    file_put_contents($file_without_owner, implode(';', $row) . "\r\n", FILE_APPEND);
 
                     continue;
                 }

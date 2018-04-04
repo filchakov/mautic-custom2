@@ -4,7 +4,7 @@
 
 <section class="content">
     <h1>
-        {{$title}}
+        {{$title}} ({{$parent_email->title}})
     </h1>
     <a href="{!!url('email')!!}" class = 'btn btn-primary'><i class="fa fa-home"></i> Emails</a>
     <hr/>
@@ -12,9 +12,10 @@
         <thead>
             <th width="50px">#ID</th>
             <th width="200px">Logo</th>
-            <th>URL</th>
-            <th></th>
-            <th width="400px">Actions</th>
+            <th width="100px">URL</th>
+            <th width="170px"></th>
+            <th>Stats</th>
+            <th width="200px">Actions</th>
         </thead>
         <tbody>
             @foreach($projects as $project)
@@ -34,22 +35,103 @@
                     @endif
                 </td>
                 <td>
+                    <div data-email_id="{{$project->emails->id}}">
+                        <table class="table">
+                            <tr>
+                                <td width="50px">
+                                    Subject:
+                                </td>
+                                <td>
+                                    <div class="loader"></div>
+                                    <b class="js_subject"></b>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    Read:
+                                </td>
+                                <td>
+                                    <div class="loader"></div>
+                                    <b class="js_read"></b>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    Sent:
+                                </td>
+                                <td>
+                                    <div class="loader"></div>
+                                    <b class="js_sent"></b>
+                                </td>
+                            </tr>
+                            <tr style="text-align: center;">
+                                <td colspan="2">
+                                    <div class="btn-group">
+                                        <a href="https://m.hiretrail.com/s/emails/view/{{$project->emails->mautic_email_id}}" target="_blank" class="btn btn-success disabled">Report of clicks</a>
+                                        <a href="{{route('email.test_campaign', ['id' => $project->emails->id])}}" target="_blank" class="btn btn-warning disabled">Create test campaign</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
 
-                    @if(is_null($project->emails))
-                        <a href="{{route('email.builder', ['email_id' => -1, 'project_id' => $project->id, 'main_template_email' => $main_template_email])}}" class = 'btn btn-primary'>
-                            <i class = 'fa fa-edit'></i> Create
+                    <script type="application/javascript">
+
+                        function get_stats(email_id, callback) {
+                            $.get('/email/' + email_id + '/stats', function (data) {
+
+                                var percents = 0;
+
+                                if(data.read > 0){
+                                    percents = Math.round(data.read/(data.sent/100));
+                                }
+
+                                $('[data-email_id=' + email_id + '] .loader').hide();
+                                $('[data-email_id=' + email_id + '] .js_read').text(data.read + ' (' + percents + '%)');
+                                $('[data-email_id=' + email_id + '] .js_subject').text(data.subject);
+                                $('[data-email_id=' + email_id + '] .js_sent').text(data.sent);
+                                $('[data-email_id=' + email_id + '] .disabled').removeClass('disabled');
+
+                            }).fail(function() {
+                                $('[data-email_id=' + email_id + '] .loader').hide();
+                                $('[data-email_id=' + email_id + '] .js_read').text('N/\A');
+                                $('[data-email_id=' + email_id + '] .js_sent').text('N/\A');
+                                $('[data-email_id=' + email_id + '] .js_subject').text('Empty');
+                                setInterval(8000, get_stats(email_id, function () {
+                                    window.location.reload();
+                                }));
+                            });
+
+                            callback();
+                        }
+
+                        get_stats({{$project->emails->id}});
+
+                    </script>
+
+                </td>
+                <td>
+
+                    <div class="btn-group-vertical">
+                        @if(is_null($project->emails))
+                            <a href="{{route('email.builder', ['email_id' => -1, 'project_id' => $project->id, 'main_template_email' => $main_template_email])}}" class = 'btn btn-primary'>
+                                <i class = 'fa fa-edit'></i> Create
+                            </a>
+                        @else
+                            <a href="{{route('email.builder', ['email_id' => $project->emails->id, 'project_id' => $project->id])}}" class = 'btn btn-primary'>
+                                <i class = 'fa fa-edit'></i> Edit
+                            </a>
+                            <a href="{{route('email.show', ['id' => $project->emails->id])}}" target="_blank" class = 'btn btn-warning'>
+                                <i class = 'fa fa-eye'> Show template</i>
+                            </a>
+                        @endif
+                        <a class="btn btn-primary" target="_blank" href="{{env('MAUTIC_URL')}}/email/preview/{{$project->emails->mautic_email_id}}">
+                            <i class="fa fa-external-link"> Check email on mautic</i>
                         </a>
-                    @else
-                        <a href="{{route('email.builder', ['email_id' => $project->emails->id, 'project_id' => $project->id])}}" class = 'btn btn-primary'>
-                            <i class = 'fa fa-edit'></i> Edit
+                        <a class="btn btn-danger" onclick="if(confirm('You are sure, that want to remove #{{$project->emails->id}}?')){ window.location.href = '{{route('email.delete', ['id' => $project->emails->id])}}'; } ">
+                            <i class="fa fa-remove"> Delete</i>
                         </a>
-                        <a href="{{route('email.show', ['id' => $project->emails->id])}}" target="_blank" class = 'btn btn-warning'>
-                            <i class = 'fa fa-eye'> Show template</i>
-                        </a>
-                    @endif
-                    <a class="btn btn-primary" target="_blank" href="{{env('MAUTIC_URL')}}/email/preview/{{$project->emails->mautic_email_id}}">
-                        <i class="fa fa-external-link"> Check email on mautic</i>
-                    </a>
+                    </div>
 
                 </td>
             </tr>
@@ -90,6 +172,22 @@
 
     @endif
 
+    <style type="text/css">
+        .loader {
+            border: 8px solid #f3f3f3; /* Light grey */
+            border-top: 8px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            margin: auto;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 
 </section>
 @endsection

@@ -1379,16 +1379,23 @@ angular.module('email.builder', [
                         $scope.Email.html = res.html;
                         // $scope.Email = is what you need to save
 
+                        var params_url = {
+                            project_id: window.project_id,
+                            main_template_email: window.main_template_email
+                        };
+
                         if(window.email_info.id == 0 || window.main_template_email != false){
                             var url_save_email = '/email';
                             var url_redirect = '/email';
+                            params_url.projects = window.projects;
+                            params_url.segment_id = window.segment_id;
                         } else {
                             var url_save_email = '/email/' + window.email_info.id;
                             var url_redirect = window.redirect_url;
                         }
 
                         $.ajax({
-                            url: url_save_email+'?project_id='+window.project_id+'&main_template_email='+window.main_template_email,
+                            url: $scope.buildUrl(url_save_email, params_url),
                             data: {email: encodeURI(JSON.stringify($scope.Email))},
                             dataType: "json",
                             type: 'POST',
@@ -1629,5 +1636,19 @@ angular.module('email.builder', [
                 // $scope.currentElement = undefined;
                 return false;
             });
+
+
+            $scope.buildUrl = function (url, parameters){
+                var qs = "";
+                for(var key in parameters) {
+                    var value = parameters[key];
+                    qs += encodeURIComponent(key) + "=" + encodeURIComponent(value) + "&";
+                }
+                if (qs.length > 0){
+                    qs = qs.substring(0, qs.length-1); //chop off last "&"
+                    url = url + "?" + qs;
+                }
+                return url;
+            }
         }
     ]);

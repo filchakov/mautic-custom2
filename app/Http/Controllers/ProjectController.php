@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Email;
-use Illuminate\Support\Facades\App;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use App\Project;
-use Amranidev\Ajaxis\Ajaxis;
 use URL;
+
+use App\Email;
+use App\Project;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
+
+use Amranidev\Ajaxis\Ajaxis;
 
 /**
  * Class ProjectController.
@@ -113,17 +115,28 @@ class ProjectController extends Controller
             $project = Project::find($project_id);
 
             foreach ($emails as $email_id => $value) {
+
                 $email = Email::find($email_id);
+
                 if(Email::where([
                     'parent_email_id' => $email->id,
                     'project_id' => $project->id
                 ])->count() == 0){
                     $copy_email = $email->replicate(['id']);
 
-                    $body = json_decode($copy_email->json_elements, 1)['html'];
-                    $body = str_replace(['src="/', "src='/"], ['src="https://email-builder.hiretrail.com/'.$project->logo, "src='https://email-builder.hiretrail.com/".$project->logo], $body);
-                    $body = str_replace(['http://dev.webscribble.com', 'https://dev.webscribble.com'], [$project->url, $project->url], $body);
-                    $copy_email->body = str_replace('width:100%;height:auto;" width="100"', 'height:auto;"', $body);
+                    $json_elements = json_decode($copy_email->json_elements, 1);
+
+                    if(!empty($json_elements)){
+                        $body = json_decode($copy_email->json_elements, 1)['html'];
+                        $body = str_replace(['src="/', "src='/"], ['src="https://email-builder.hiretrail.com/'.$project->logo, "src='https://email-builder.hiretrail.com/".$project->logo], $body);
+                        $body = str_replace(['http://dev.webscribble.com', 'https://dev.webscribble.com'], [$project->url, $project->url], $body);
+                        $copy_email->body = str_replace('width:100%;height:auto;" width="100"', 'height:auto;"', $body);
+                    } else {
+                        $body = $copy_email->body;
+                        $body = str_replace(['src="/', "src='/"], ['src="https://email-builder.hiretrail.com/'.$project->logo, "src='https://email-builder.hiretrail.com/".$project->logo], $body);
+                        $body = str_replace(['http://dev.webscribble.com', 'https://dev.webscribble.com'], [$project->url, $project->url], $body);
+                        $copy_email->body = str_replace('width:100%;height:auto;" width="100"', 'height:auto;"', $body);
+                    }
 
                     $copy_email->parent_email_id = $email->id;
                     $copy_email->project_id = $project->id;

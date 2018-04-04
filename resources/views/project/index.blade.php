@@ -18,6 +18,7 @@
             <th>From email</th>
             <th>Reply to</th>
             <th>Bounced emails</th>
+            <th>Segments</th>
             <th>Actions</th>
         </thead>
         <tbody>
@@ -29,7 +30,23 @@
                 <td>{!!$project->from_name!!} {!! $project->last_name !!}</td>
                 <td>{!!$project->from_email!!}</td>
                 <td>{!!$project->relpy_to!!}</td>
-                <td>{!!$project->bounced_emails!!}</td>
+                <td class="text-center">
+                    @if(!empty($project->bounced_emails))
+                        <a href="{{route('email.bounced', ['id' => $project->id])}}" class="btn btn-info">
+                            <i class="fa fa-download"> </i> {!!$project->bounced_emails!!}
+                        </a>
+                    @else
+                        {!!$project->bounced_emails!!}
+                    @endif
+
+                </td>
+                <td>
+                    @if($project->segments_counter['total'] > $project->segments_counter['created'])
+                        <p>This project need {{$project->segments_counter['total'] - $project->segments_counter['created']}} segment(s)</p>
+                        @else
+                        <p>Project have all segments</p>
+                    @endif
+                </td>
                 <td>
                     <a data-toggle="modal" data-target="#myModal" class = 'delete btn btn-danger btn-xs' data-link = "/project/{!!$project->id!!}/deleteMsg" ><i class = 'fa fa-trash'> delete</i></a>
                     <a href = '#' class = 'viewEdit btn btn-primary btn-xs' data-link = '/project/{!!$project->id!!}/edit'><i class = 'fa fa-edit'> edit</i></a>

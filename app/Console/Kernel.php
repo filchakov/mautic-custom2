@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Console\Commands\MatchOldMauticSegments;
 use App\Console\Commands\MauticSyncUTM;
 use App\Console\Commands\AddTagsForAllLeads;
 use App\Console\Commands\DeleteBouncedContacts;
@@ -19,7 +20,8 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         MauticSyncUTM::class,
         DeleteBouncedContacts::class,
-        AddTagsForAllLeads::class
+        AddTagsForAllLeads::class,
+        MatchOldMauticSegments::class,
     ];
 
     /**

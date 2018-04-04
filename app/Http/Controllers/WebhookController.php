@@ -17,6 +17,31 @@ class WebhookController extends Controller
      * @apiGroup User
      * @apiVersion 1.0.0
      *
+     * @apiExample {php} PHP Example:
+        <?php
+
+            $data = array(
+                "firstname" => "Sam",
+                "lastname" => "Uncle",
+                "tags" => "job_seeker,member",
+                "phone" => "18005005050",
+                "email" => "sam.unlce@example.com",
+                "project_url" => "http://dev.webscribble.com"
+            );
+
+            $data_string = json_encode($data);
+
+            $ch = curl_init('https://email-builder.hiretrail.com/webhooks/lead');
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen($data_string))
+            );
+
+            $result = curl_exec($ch);
+     *
      * @apiParam {String="http://example.com","example.com"} project_url Project's URL (Example: http://dev.webscribble.com or dev.webscribble.com)
      * @apiParam {String} firstname First name
      * @apiParam {String} lastname Last name
@@ -48,7 +73,7 @@ class WebhookController extends Controller
      * @apiSuccess {String} [data.zipcode] Zip code
      *
      * @apiError ProjectNotFound The project URL was not found in projects database
-     * @apiErrorExample Error-Response:
+     * @apiErrorExample 404-Error-Response:
      *
      *  HTTP/1.1 404 Not Found
      *  {
@@ -60,7 +85,7 @@ class WebhookController extends Controller
      *
      *
      * @apiError EmptyField An error that appears while passing a request with an empty  field which has status "required"
-     * @apiErrorExample Error-Response:
+     * @apiErrorExample 400-Error-Response:
      *
      *  HTTP/1.1 400 Bad Request
      *  {

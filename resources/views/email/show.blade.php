@@ -4,7 +4,7 @@
 
 <section class="content">
     <h1>
-        Show email
+        {{$email->title}}
     </h1>
     <br>
     <a href='{!!url("email")!!}' class = 'btn btn-primary'><i class="fa fa-home"></i>Email Index</a>

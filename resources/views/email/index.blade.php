@@ -13,7 +13,7 @@
         <thead>
             <th width="50px">#ID</th>
             <th>Title</th>
-            <th width="400px">Actions</th>
+            <th width="250px">Actions</th>
         </thead>
         <tbody>
             @foreach($emails as $email) 
@@ -21,15 +21,17 @@
                 <td>{!!$email->id!!}</td>
                 <td>{!!$email->title!!}</td>
                 <td>
-                    <a href="{{route('email.customize', ['id' => $email->id])}}" class = 'btn btn-primary'>
-                        <i class = 'fa fa-reorder'></i> Customize for projects
-                    </a>
-                    <a href="{{route('email.show', ['id' => $email->id])}}" target="_blank" class = 'btn btn-warning'>
-                        <i class = 'fa fa-eye'> Show</i>
-                    </a>
-                    <a onclick="if(confirm('You are sure, that want to remove #{{$email->id}}?')){ window.location.href = '{{route('email.delete', ['id' => $email->id])}}'; } " target="_blank" class = 'btn btn-danger'>
-                        <i class = 'fa fa-remove'> Delete</i>
-                    </a>
+                    <div class="btn-group">
+                        <a href="{{route('email.customize', ['id' => $email->id])}}" class = 'btn btn-primary'>
+                            <i class = 'fa fa-reorder'></i> Details
+                        </a>
+                        <a href="{{route('email.show', ['id' => $email->id])}}" target="_blank" class = 'btn btn-warning'>
+                            <i class = 'fa fa-eye'> Show</i>
+                        </a>
+                        <a onclick="if(confirm('You are sure, that want to remove #{{$email->id}}?')){ window.location.href = '{{route('email.delete', ['id' => $email->id])}}'; } " target="_blank" class = 'btn btn-danger'>
+                            <i class = 'fa fa-remove'> Delete</i>
+                        </a>
+                    </div>
                 </td>
             </tr>
             @endforeach 

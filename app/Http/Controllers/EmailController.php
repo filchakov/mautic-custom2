@@ -2,17 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Jobs\CreateEmailMautic;
-use App\Project;
-use Illuminate\Support\Facades\App;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use App\Email;
-use Amranidev\Ajaxis\Ajaxis;
 use Log;
+use URL;
+use Carbon\Carbon;
+
+use App\Email;
+use App\Segment;
+use App\Project;
+use App\BouncedEmailLog;
+use App\SegmentsToProjects;
+
+use Illuminate\Http\Request;
+use Amranidev\Ajaxis\Ajaxis;
 use Mautic\Auth\ApiAuth;
 use Mautic\MauticApi;
-use URL;
 
 /**
  * Class EmailController.
@@ -64,7 +67,7 @@ class EmailController extends Controller
             ->pluck('project_id')
         )->get();
 
-        return view('email.customize',compact('title', 'projects', 'main_template_email', 'id', 'projects_without_email'));
+        return view('email.customize', compact('title', 'projects', 'main_template_email', 'id', 'projects_without_email', 'parent_email'));
     }
 
     /**
@@ -74,11 +77,78 @@ class EmailController extends Controller
      */
     public function create()
     {
-
         $project = null;
         $email = null;
 
+        $projects_ids = \request()->get('projects', []);
+        $segment_id = \request()->get('segment_id', false);
+
+        if(empty($projects_ids)){
+            $projects = Project::all();
+            return view('builder.choose_project', compact('projects'));
+        }
+
+        if(empty($segment_id)){
+            $segments_to_projects = SegmentsToProjects::whereIn('project_id', $projects_ids)->get();
+            $segments = Segment::whereIn('id', $segments_to_projects->pluck('segment_id', 'segment_id'))->get();
+            return view('builder.choose_segment', compact('segments'));
+        }
+
+
+        if(!empty($projects_ids) && !empty($segment_id) && \request()->get('source_type', false) == false){
+            return view('builder.choose_source_type', compact('segment_id', 'projects_ids'));
+        }
+
+        if(\request()->get('source_type', false) == 'html'){
+            $content = file_get_contents(\request()->file('source_template')->getRealPath());
+
+            //$projects_ids
+            $email = new Email();
+            $email->title = \request()->get('subject_name', '');
+            $email->body = $content;
+            $email->json_elements = json_encode([]);
+
+            $email->utm_source = '';
+            $email->utm_medium = '';
+            $email->utm_name = '';
+            $email->utm_content = '';
+
+            $email->mautic_email_id = 0;
+            $email->project_id = 1;
+            $email->parent_email_id = 0;
+            $email->segment_id = $segment_id;
+            $email->save();
+
+            $parent_email_id = $email->id;
+
+            foreach ($projects_ids as $projects_id){
+
+                if($projects_id == 1){
+                    continue;
+                }
+
+                $email = new Email();
+                $email->title = \request()->get('subject_name', '');
+                $email->body = $content;
+                $email->json_elements = json_encode([]);
+
+                $email->utm_source = '';
+                $email->utm_medium = '';
+                $email->utm_name = '';
+                $email->utm_content = '';
+
+                $email->mautic_email_id = 0;
+                $email->project_id = $projects_id;
+                $email->parent_email_id = $parent_email_id;
+                $email->segment_id = $segment_id;
+                $email->save();
+            }
+
+            return redirect()->route('email.customize', ['id' => $parent_email_id]);
+        }
+
         $main_template_email = 'false';
+
         return view('builder.index', compact('project', 'email', 'main_template_email'));
     }
 
@@ -101,6 +171,9 @@ class EmailController extends Controller
             $mautic_email['email']['id'] = 0;
         }
 
+        $projects_ids = explode(',', $request->get('projects', ''));
+        $segment_id = $request->get('segment_id', 0);
+
         $parent_email_id = ($request->get('main_template_email') == 'false')? 0 : $request->get('main_template_email');
 
         $json = json_decode(urldecode($request->get('email')), 1);
@@ -117,12 +190,9 @@ class EmailController extends Controller
         $email->utm_name = $json->get('utm_name');
         $email->utm_content = $json->get('utm_content');
 
-        //$email->save();
-        //$email->title = $request->get('name');
-        //$email->body = str_replace('>null<','><',$request->get('html'));
         $email->mautic_email_id = $mautic_email['email']['id'];
         $email->project_id = ($request->get('project_id') == 0)? 1 : $request->get('project_id');
-        //$email->json_elements = str_replace('>null<', '><', json_encode($request->toArray()));
+        $email->segment_id = $segment_id;
         $email->parent_email_id = $parent_email_id;
         $email->save();
 
@@ -130,10 +200,14 @@ class EmailController extends Controller
 
             $parent_email_id = $email->id;
 
-            foreach (Project::where('id', '>', 1)->get() as $project){
+            $projects = Project::where('id', '>', 1);
+
+            if(!empty($projects_ids)){
+                $projects->whereIn('id', $projects_ids);
+            }
+
+            foreach ($projects->get() as $project){
                 $email = new Email();
-                //$email->title = $request->get('name');
-                //$email->body = str_replace('>null<','><',$request->get('html'));
                 $email->title = $json->get('name');
                 $email->body = $json->get('html');
                 $email->mautic_email_id = $mautic_email['email']['id'];
@@ -147,6 +221,7 @@ class EmailController extends Controller
                 //$email->json_elements = str_replace('>null<', '><', json_encode($request->toArray()));
                 $email->json_elements = urldecode($request->get('email'));
                 $email->parent_email_id = $parent_email_id;
+                $email->segment_id = $segment_id;
                 $email->save();
             }
         }
@@ -202,84 +277,162 @@ class EmailController extends Controller
      */
     public function update($id,Request $request)
     {
-        $json = json_decode(urldecode($request->get('email')), 1);
-        $json = collect($json);
 
         $parent_email = Email::findOrfail($id);
-        $children_emails = Email::where(['parent_email_id' => $id, 'json_elements' => $parent_email->json_elements])->get();
 
-        $emails = Email::whereIn('id', array_merge([$parent_email->id], $children_emails->pluck('id')->toArray()))->get();
-        foreach ($emails as $email){
-            //$email = Email::findOrfail($id);
-            $email->title = $json->get('name');
-            $email->body = $json->get('html');
-            $email->json_elements = urldecode($request->get('email'));
+        if($request->get('source_type', false)){
 
-            $email->utm_source = $json->get('utm_source');
-            $email->utm_medium = $json->get('utm_medium');
-            $email->utm_name = $json->get('utm_name');
-            $email->utm_content = $json->get('utm_content');
+            $children_emails = Email::where(['parent_email_id' => $id, 'body' => $parent_email->body])->get();
 
-            $email->save();
+            $emails = Email::whereIn('id', array_merge([$parent_email->id], $children_emails->pluck('id')->toArray()))->get();
 
-            $project = Project::find($email->project_id);
+            $content = file_get_contents(\request()->file('source_template')->getRealPath());
 
-            $email->body = str_replace('/email_builder/assets/default-logo.png', '/' . $project->logo, $email->body);
-            $email->body = str_replace(['src="/', "src='/"], ['src="https://email-builder.hiretrail.com/'.$project->logo, "src='https://email-builder.hiretrail.com/".$project->logo], $email->body);
-            $email->body = str_replace(['http://dev.webscribble.com', 'https://dev.webscribble.com'], [$project->url, $project->url], $email->body);
-            $email->body = str_replace('width:100%;height:auto;" width="100"', 'height:auto;"', $email->body);
+            foreach ($emails as $email){
+                $email->title = $request->get('name', '');
+                $email->body = $content;
 
-            $email->body = str_replace([
-                '{sender=project_url}',
-                '{sender=company_name}',
-                '{sender=first_name}',
-                '{sender=last_name}',
-                '{sender=email_from}',
-                '{sender=email_for_reply}',
-            ], [
-                $project->url,
-                $project->company_name,
-                $project->from_name,
-                $project->last_name,
-                $project->from_email,
-                $project->relpy_to,
-            ], $email->body);
+                $project = Project::find($email->project_id);
 
-            try {
-                $new_mautic_email = [
-                    'name' => $email->title . ' | ' . $project->url,
-                    'subject' => $email->title,
-                    'customHtml' => $email->body,
-                    'utmTags' => [
-                        'utmSource' => $email->utm_source,
-                        'utmMedium' => $email->utm_medium,
-                        'utmCampaign' => $email->utm_name,
-                        'utmContent' => $email->utm_content,
-                    ]
-                ];
+                $email->body = str_replace('/email_builder/assets/default-logo.png', '/' . $project->logo, $email->body);
+                $email->body = str_replace(['src="/', "src='/"], ['src="https://email-builder.hiretrail.com/'.$project->logo, "src='https://email-builder.hiretrail.com/".$project->logo], $email->body);
+                $email->body = str_replace(['http://dev.webscribble.com', 'https://dev.webscribble.com'], [$project->url, $project->url], $email->body);
+                $email->body = str_replace('width:100%;height:auto;" width="100"', 'height:auto;"', $email->body);
 
-                $settings = ['userName'   => env('MAUTIC_LOGIN'), 'password'   => env('MAUTIC_PASSWORD'), 'debug' => true];
+                $email->body = str_replace([
+                    '{sender=project_url}',
+                    '{sender=company_name}',
+                    '{sender=first_name}',
+                    '{sender=last_name}',
+                    '{sender=email_from}',
+                    '{sender=email_for_reply}',
+                ], [
+                    $project->url,
+                    $project->company_name,
+                    $project->from_name,
+                    $project->last_name,
+                    $project->from_email,
+                    $project->relpy_to,
+                ], $email->body);
 
-                $initAuth = new ApiAuth();
+                $email->save();
 
-                $auth = $initAuth->newAuth($settings, 'BasicAuth');
+                try {
+                    $new_mautic_email = [
+                        'name' => $email->title . ' | ' . $project->url,
+                        'subject' => $email->title,
+                        'customHtml' => $email->body,
+                        'utmTags' => [
+                            'utmSource' => $email->utm_source,
+                            'utmMedium' => $email->utm_medium,
+                            'utmCampaign' => $email->utm_name,
+                            'utmContent' => $email->utm_content,
+                        ]
+                    ];
 
-                $api = new MauticApi();
+                    $settings = ['userName'   => env('MAUTIC_LOGIN'), 'password'   => env('MAUTIC_PASSWORD')];
 
-                $contactApi = $api->newApi('emails', $auth, env('MAUTIC_URL'));
+                    $initAuth = new ApiAuth();
 
-                $contactApi->edit($email->mautic_email_id, $new_mautic_email);
-            } catch (\Exception $e){
-                Log::warninr('Change tamplate on mautic', [
-                    'error' => $e->getMessage(),
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine(),
-                    'host' => env('MAUTIC_URL')
-                ]);
+                    $auth = $initAuth->newAuth($settings, 'BasicAuth');
+
+                    $api = new MauticApi();
+
+                    $contactApi = $api->newApi('emails', $auth, env('MAUTIC_URL'));
+
+                    $contactApi->edit($email->mautic_email_id, $new_mautic_email);
+                } catch (\Exception $e){
+                    Log::warninr('Change tamplate on mautic', [
+                        'error' => $e->getMessage(),
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine(),
+                        'host' => env('MAUTIC_URL')
+                    ]);
+                }
+
+            }
+        } else {
+
+            $children_emails = Email::where(['parent_email_id' => $id, 'json_elements' => $parent_email->json_elements])->get();
+            $emails = Email::whereIn('id', array_merge([$parent_email->id], $children_emails->pluck('id')->toArray()))->get();
+
+            $json = json_decode(urldecode($request->get('email')), 1);
+            $json = collect($json);
+
+
+            foreach ($emails as $email){
+                //$email = Email::findOrfail($id);
+                $email->title = $json->get('name');
+                $email->body = $json->get('html');
+                $email->json_elements = urldecode($request->get('email'));
+
+                $email->utm_source = $json->get('utm_source');
+                $email->utm_medium = $json->get('utm_medium');
+                $email->utm_name = $json->get('utm_name');
+                $email->utm_content = $json->get('utm_content');
+
+                $email->save();
+
+                $project = Project::find($email->project_id);
+
+                $email->body = str_replace('/email_builder/assets/default-logo.png', '/' . $project->logo, $email->body);
+                $email->body = str_replace(['src="/', "src='/"], ['src="https://email-builder.hiretrail.com/'.$project->logo, "src='https://email-builder.hiretrail.com/".$project->logo], $email->body);
+                $email->body = str_replace(['http://dev.webscribble.com', 'https://dev.webscribble.com'], [$project->url, $project->url], $email->body);
+                $email->body = str_replace('width:100%;height:auto;" width="100"', 'height:auto;"', $email->body);
+
+                $email->body = str_replace([
+                    '{sender=project_url}',
+                    '{sender=company_name}',
+                    '{sender=first_name}',
+                    '{sender=last_name}',
+                    '{sender=email_from}',
+                    '{sender=email_for_reply}',
+                ], [
+                    $project->url,
+                    $project->company_name,
+                    $project->from_name,
+                    $project->last_name,
+                    $project->from_email,
+                    $project->relpy_to,
+                ], $email->body);
+
+                try {
+                    $new_mautic_email = [
+                        'name' => $email->title . ' | ' . $project->url,
+                        'subject' => $email->title,
+                        'customHtml' => $email->body,
+                        'utmTags' => [
+                            'utmSource' => $email->utm_source,
+                            'utmMedium' => $email->utm_medium,
+                            'utmCampaign' => $email->utm_name,
+                            'utmContent' => $email->utm_content,
+                        ]
+                    ];
+
+                    $settings = ['userName'   => env('MAUTIC_LOGIN'), 'password'   => env('MAUTIC_PASSWORD')];
+
+                    $initAuth = new ApiAuth();
+
+                    $auth = $initAuth->newAuth($settings, 'BasicAuth');
+
+                    $api = new MauticApi();
+
+                    $contactApi = $api->newApi('emails', $auth, env('MAUTIC_URL'));
+
+                    $contactApi->edit($email->mautic_email_id, $new_mautic_email);
+                } catch (\Exception $e){
+                    Log::warninr('Change tamplate on mautic', [
+                        'error' => $e->getMessage(),
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine(),
+                        'host' => env('MAUTIC_URL')
+                    ]);
+                }
             }
         }
 
-        return response()->json(['status' => true]);
+        return redirect()->route('email.customize', ['id' => $request->get('main_template_email_id', $id)]);
+        //return response()->json(['status' => true]);
     }
 
     /**
@@ -308,19 +461,27 @@ class EmailController extends Controller
     public function destroy($id)
     {
         $email = Email::where(['id' => $id])->firstOrFail();
-     	$email->delete();
 
-     	$child_emails = Email::where([
-     	    'parent_email_id' => $id
-        ]);
+        $parent_email_id = $email->parent_email_id;
+        $email->delete();
 
-     	if($child_emails->count() > 0){
-     	    foreach ($child_emails->get() as $child_email){
-     	        $child_email->delete();
+        if($parent_email_id == 0){
+            $child_emails = Email::where([
+                'parent_email_id' => $id
+            ]);
+
+            if($child_emails->count() > 0){
+                foreach ($child_emails->get() as $child_email){
+                    $child_email->delete();
+                }
             }
+
+            return redirect()->to('/email');
+        } else {
+            return redirect()->to(route('email.customize', ['id' => $parent_email_id]));
         }
 
-        return redirect()->to('/email');
+
     }
 
     public function builder($email_id, $project_id, Request $request){
@@ -333,6 +494,10 @@ class EmailController extends Controller
             $email = Email::where(['id' => $main_template_email])->first();
         } else {
             $email = Email::find($email_id);
+        }
+
+        if(empty(json_decode($email->json_elements, 1))){
+            return view('email.edit_html', compact('project', 'email'));
         }
 
         $email->json_elements = json_decode($email->json_elements,1);
@@ -374,5 +539,128 @@ class EmailController extends Controller
         $body = str_replace('width:100%;height:auto;" width="100"', 'height:auto;"', $body);
 
         return response()->json(['body' => $body]);
+    }
+
+    public function get_stats_email($email_id){
+
+        try {
+            $mautic = app('mautic');
+
+            $email = Email::find($email_id);
+            $emails = $mautic->getClient('emails')->get($email->mautic_email_id);
+
+            $email_mautic['read'] = $emails['email']['readCount'];
+            $email_mautic['sent'] = $emails['email']['sentCount'];
+            $email_mautic['subject'] = $emails['email']['subject'];
+
+        } catch (\Exception $e){
+            $email_mautic = collect([
+                'read' => 'N/A',
+                'sent' => 'N/A',
+                'subject' => ''
+            ]);
+        }
+
+        return response()->json($email_mautic);
+    }
+
+    public function create_test_campaign(Request $request, $id){
+
+        $email = Email::findOrFail($id);
+
+        $campaigns = [
+            'name' => 'Test campaign (' . $email->title . ')',
+            'description' => 'Created via API',
+            'isPublished' => 0,
+            'events' => [
+                [
+                    'id' => 'new_44',
+                    'name' => 'Send email',
+                    'description' => 'API test',
+                    'type' => 'email.send',
+                    'eventType' => 'action',
+                    'order' => 2,
+                    'properties' => [
+                        'email' => $email->mautic_email_id,
+                        'email_type' => 'transactional',
+                    ],
+                    'triggerDate' => null,
+                    'triggerMode' => 'immediate',
+                    'children' => [],
+                    'decisionPath' => 'yes',
+                ]
+            ],
+            'forms' => [],
+            'lists' => [
+                [
+                    'id' => (int)$request->get('segment', 0) // Create the list first
+                ]
+            ],
+            'canvasSettings' => [
+                'nodes' => [
+                    [
+                        'id' => 'new_44', // Event ID will be replaced on /new
+                        'positionX' => '433',
+                        'positionY' => '348',
+                    ],
+                    [
+                        'id' => 'lists',
+                        'positionX' => '629',
+                        'positionY' => '65',
+                    ],
+                ],
+                'connections' => [
+                    [
+                        'sourceId' => 'lists',
+                        'targetId' => 'new_44', // Event ID will be replaced on /new
+                        'anchors' => [
+                            'source' => 'leadsource',
+                            'target' => 'top',
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $mautic = app('mautic');
+        $campaign = $mautic->getClient('campaigns');
+        $result = $campaign->create($campaigns);
+
+
+        return redirect()->to(env('MAUTIC_URL') . '/s/campaigns/view/' . $result['campaign']['id']);
+    }
+
+    public function test_campaign($id){
+
+        $email = Email::findOrFail($id);
+
+        $mautic = app('mautic');
+        $emails = $mautic->getClient('segments')->getList();
+
+        $campaigns_from_mautic = collect($emails['lists']);
+
+        $segments_mautic = $campaigns_from_mautic
+            ->mapWithKeys(function ($item) use ($mautic){
+
+                return [$item['id'] => [
+                    'name' => $item['name'],
+                    'alias' => $item['alias']
+                ]];
+            })
+            ->except(SegmentsToProjects::all()->pluck('mautic_segment_id')->merge([29])->toArray());
+
+        return view('email.create_test_campaign', compact('segments_mautic', 'email'));
+    }
+
+    public function bounced($id){
+        $bounced = BouncedEmailLog::where('project_id', $id)->get();
+        $project = Project::findOrFail($id);
+
+        $filename = 'Bounced-emails-' . $project->company_name . ' ' . Carbon::now()->format('Y-m-d') . '.csv';
+
+        return response(implode("\r\n", $bounced->pluck('email')->toArray()), 200, [
+            'Content-type' => 'text/csv',
+            'Content-disposition' => 'filename="' . $filename . '"'
+        ]);
     }
 }
