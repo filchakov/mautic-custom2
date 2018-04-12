@@ -2,12 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Project;
-use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
+use App\Jobs\CreateContactsOnMautic;
 
-use Mautic\Auth\ApiAuth;
-use Mautic\MauticApi;
+use Illuminate\Http\Request;
 
 class WebhookController extends Controller
 {
@@ -100,81 +97,23 @@ class WebhookController extends Controller
 
     public function create(Request $request){
 
-        $errors = [];
+        try {
+            CreateContactsOnMautic::dispatch($request->toArray())
+                ->onQueue(env('APP_ENV').'-CreateContactsOnMautic');
 
-        $code = 400;
+            return response()->json([
+                'status' => true,
+                'data' => []
+            ], 200);
 
-        $project_url = $request->get('project_url', false);
-
-        if(empty($project_url)){
-            $errors['project_url'] = 'Missing field';
-        } else {
-            $project = Project::where('url', 'like', '%'.$project_url.'%')->first();
-            if(empty($project)) {
-                $errors['project_url'] = 'URL does not exist in a database';
-                $code = 404;
-            }
+        } catch (\Exception $e){
+            return response()->json([
+                'status' => true,
+                'data' => [
+                    'message' => $e->getMessage()
+                ]
+            ], 500);
         }
 
-
-        if(!empty($request->get('tags'))){
-            $tags = explode(',', $request->get('tags'));
-        } else {
-            $tags = [];
-        }
-
-        $email = $request->get('email', false);
-
-        if(empty($email)) {
-            $errors['project_url'] = 'Missing field';
-        }
-
-        if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
-            $errors['email'] = 'Is not valid email';
-        }
-
-        if(!empty($errors)){
-            return \response()->json([
-                'status' => false,
-                'data' => $errors
-            ], $code);
-
-        } else {
-            $settings = ['userName'   => env('MAUTIC_LOGIN'), 'password'   => env('MAUTIC_PASSWORD'), 'debug' => true];
-
-            $initAuth = new ApiAuth();
-
-            $auth = $initAuth->newAuth($settings, 'BasicAuth');
-
-            $api = new MauticApi();
-
-            $contactApi = $api->newApi('contacts', $auth, env('MAUTIC_URL'));
-
-            $contact = $contactApi->create(
-                array_merge([
-                    'owner' => $project->mautic_id,
-                    'tags' => $tags
-                ], $request->toArray())
-            );
-
-            if(!empty($contact['contact'])){
-
-                $result_data = [
-                    'id' => $contact['contact']['id'],
-                    'tags' => implode(',', $tags),
-                ];
-
-                foreach ($request->toArray() as $name => $value) {
-                    if(isset($contact['contact']['fields']['core'][$name])){
-                        $result_data[$name] = $contact['contact']['fields']['core'][$name]['value'];
-                    }
-                }
-
-                return response()->json([
-                    'status' => true,
-                    'data' => $result_data
-                ], 200);
-            }
-        }
     }
 }
