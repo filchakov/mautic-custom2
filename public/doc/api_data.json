@@ -2,14 +2,14 @@
   {
     "type": "post",
     "url": "/webhooks/lead",
-    "title": "Create new contact",
-    "name": "new_lead",
+    "title": "Create new contacts",
+    "name": "new_leads",
     "group": "User",
     "version": "1.0.0",
     "examples": [
       {
         "title": "PHP Example:",
-        "content": "<?php\n\n    $data = array(\n        \"firstname\" => \"Sam\",\n        \"lastname\" => \"Uncle\",\n        \"tags\" => \"job_seeker,member\",\n        \"phone\" => \"18005005050\",\n        \"email\" => \"sam.unlce@example.com\",\n        \"project_url\" => \"http://dev.webscribble.com\"\n    );\n\n    $data_string = json_encode($data);\n\n    $ch = curl_init('https://email-builder.hiretrail.com/webhooks/lead');\n    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, \"POST\");\n    curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);\n    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);\n    curl_setopt($ch, CURLOPT_HTTPHEADER, array(\n        'Content-Type: application/json',\n        'Content-Length: ' . strlen($data_string))\n    );\n\n    $result = curl_exec($ch);",
+        "content": "<?php\n\n    $data = array(\n        [\n            \"firstname\" => \"Sam\",\n            \"lastname\" => \"Uncle\",\n            \"tags\" => \"job_seeker,member\",\n            \"phone\" => \"18005005050\",\n            \"email\" => \"sam.unlce@example.com\",\n            \"project_url\" => \"http://dev.webscribble.com\"\n        ], [\n            \"firstname\" => \"Sam2\",\n            \"lastname\" => \"Uncle2\",\n            \"tags\" => \"job_seeker,member\",\n            \"phone\" => \"18005005250\",\n            \"email\" => \"sam.unlce2@example.com\",\n            \"project_url\" => \"http://dev.webscribble.com\"\n        ],\n    );\n\n    $data_string = json_encode($data);\n\n    $ch = curl_init('https://email-builder.hiretrail.com/webhooks/lead');\n    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, \"POST\");\n    curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);\n    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);\n    curl_setopt($ch, CURLOPT_HTTPHEADER, array(\n        'Content-Type: application/json',\n        'Content-Length: ' . strlen($data_string))\n    );\n\n    $result = curl_exec($ch);",
         "type": "php"
       }
     ],

@@ -9,8 +9,8 @@ use Illuminate\Http\Request;
 class WebhookController extends Controller
 {
     /**
-     * @api {post} /webhooks/lead Create new contact
-     * @apiName new_lead
+     * @api {post} /webhooks/lead Create new contacts
+     * @apiName new_leads
      * @apiGroup User
      * @apiVersion 1.0.0
      *
@@ -18,12 +18,21 @@ class WebhookController extends Controller
         <?php
 
             $data = array(
-                "firstname" => "Sam",
-                "lastname" => "Uncle",
-                "tags" => "job_seeker,member",
-                "phone" => "18005005050",
-                "email" => "sam.unlce@example.com",
-                "project_url" => "http://dev.webscribble.com"
+                [
+                    "firstname" => "Sam",
+                    "lastname" => "Uncle",
+                    "tags" => "job_seeker,member",
+                    "phone" => "18005005050",
+                    "email" => "sam.unlce@example.com",
+                    "project_url" => "http://dev.webscribble.com"
+                ], [
+                    "firstname" => "Sam2",
+                    "lastname" => "Uncle2",
+                    "tags" => "job_seeker,member",
+                    "phone" => "18005005250",
+                    "email" => "sam.unlce2@example.com",
+                    "project_url" => "http://dev.webscribble.com"
+                ],
             );
 
             $data_string = json_encode($data);
@@ -98,8 +107,11 @@ class WebhookController extends Controller
     public function create(Request $request){
 
         try {
-            CreateContactsOnMautic::dispatch($request->toArray())
-                ->onQueue(env('APP_ENV').'-CreateContactsOnMautic');
+
+            foreach ($request->toArray() as $contact){
+                CreateContactsOnMautic::dispatch($contact)
+                    ->onQueue(env('APP_ENV').'-CreateContactsOnMautic');
+            }
 
             return response()->json([
                 'status' => true,
