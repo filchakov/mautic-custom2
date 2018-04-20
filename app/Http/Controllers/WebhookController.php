@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Jobs\CreateContactsOnMautic;
 
+use App\Project;
 use Illuminate\Http\Request;
 
 class WebhookController extends Controller
@@ -108,14 +109,45 @@ class WebhookController extends Controller
 
         try {
 
+            $result = [];
             foreach ($request->toArray() as $contact){
-                CreateContactsOnMautic::dispatch($contact)
-                    ->onQueue(env('APP_ENV').'-CreateContactsOnMautic');
+
+                $errors = [];
+
+                //Checking email field
+                if(empty($contact['email'])) {
+                    $errors['email'] = 'Missing field';
+                } elseif (!filter_var($contact['email'], FILTER_VALIDATE_EMAIL)){
+                    $errors['email'] = 'Is not valid email';
+                }
+
+                //Checking project_url field
+                if(empty($contact['project_url'])){
+                    $errors['project_url'] = 'Missing field';
+                } elseif(filter_var($contact['project_url'], FILTER_VALIDATE_URL) != $contact['project_url']) {
+                    $errors['project_url'] = 'Is not valid URL of project';
+                } else {
+
+                    $url = parse_url($contact['project_url']);
+
+                    $project = Project::where('url', 'like', '%'.$url['host'] .'%')->first();
+
+                    if(empty($project)) {
+                        $errors['project_url'] = 'URL does not exist in a database';
+                    }
+                }
+
+                if (empty($errors)){
+                    $result[] = ["status" => true, "fields" => []];
+                    CreateContactsOnMautic::dispatch($contact)->onQueue(env('APP_ENV').'-CreateContactsOnMautic');
+                } else {
+                    $result[] = ["status" => false, "fields" => $errors];
+                }
             }
 
             return response()->json([
                 'status' => true,
-                'data' => []
+                'data' => $result
             ], 200);
 
         } catch (\Exception $e){

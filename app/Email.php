@@ -26,6 +26,11 @@ class Email extends Model
     protected $table = 'emails';
 
 
+    public function project()
+    {
+        return $this->hasOne('App\Project', 'id', 'project_id')->select(['id', 'logo', 'url']);
+    }
+
     static function boot()
     {
         parent::boot();
@@ -51,4 +56,43 @@ class Email extends Model
             CreateEmailMautic::dispatch($model)->onQueue(env('APP_ENV').'-CreateEmailMautic');
         });
     }
+
+
+    /**
+     * @param bool $is_unique
+     * @return \Illuminate\Support\Collection
+     */
+    public static function getEmailsInTree($is_unique = true)
+    {
+        $result = collect();
+
+        $main_emails = Email::where([
+            'project_id' => 1,
+            'parent_email_id' => 0
+        ])
+            ->with('project')
+            ->select(['id', 'title', 'body', 'project_id'])
+            ->orderBy('id', 'desc')
+            ->get();
+
+        foreach ($main_emails as $email) {
+            $tmp_result = [
+                'parent' => collect($email->toArray())->forget('body'),
+                'childs' => []
+            ];
+
+            $childs = Email::where('parent_email_id', '=', $email->id)
+                ->where('body', '!=', $email->body)
+                ->select(['id', 'title', 'project_id'])
+                ->with('project')
+                ->get();
+
+            $tmp_result['childs'] = $childs->toArray();
+
+            $result->push($tmp_result);
+        }
+
+        return $result;
+    }
+
 }

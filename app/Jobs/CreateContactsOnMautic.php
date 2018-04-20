@@ -37,49 +37,20 @@ class CreateContactsOnMautic implements ShouldQueue
     public function handle()
     {
 
-        $request = $this->request;
+        try {
+            $request = $this->request;
+            $request['project_url'] = 'http://dev.webscribble.com/';
 
-        $errors = [];
+            $url = parse_url($request['project_url']);
+            $project = Project::where('url', 'like', '%' . $url['host'] . '%')->first();
 
-        $code = 400;
-
-        $project_url = $request['project_url'];
-
-        if(empty($project_url)){
-            $errors['project_url'] = 'Missing field';
-        } else {
-            $project = Project::where('url', 'like', '%'.$project_url.'%')->first();
-            if(empty($project)) {
-                $errors['project_url'] = 'URL does not exist in a database';
-                $code = 404;
+            if (!empty($request['tags'])) {
+                $tags = explode(',', $request['tags']);
+            } else {
+                $tags = [];
             }
-        }
 
-
-        if(!empty($request['tags'])){
-            $tags = explode(',', $request['tags']);
-        } else {
-            $tags = [];
-        }
-
-        $email = $request['email'];
-
-        if(empty($email)) {
-            $errors['project_url'] = 'Missing field';
-        }
-
-        if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
-            $errors['email'] = 'Is not valid email';
-        }
-
-        if(!empty($errors)){
-            return \response()->json([
-                'status' => false,
-                'data' => $errors
-            ], $code);
-
-        } else {
-            $settings = ['userName'   => env('MAUTIC_LOGIN'), 'password'   => env('MAUTIC_PASSWORD'), 'debug' => true];
+            $settings = ['userName' => env('MAUTIC_LOGIN'), 'password' => env('MAUTIC_PASSWORD'), 'debug' => true];
 
             $initAuth = new ApiAuth();
 
@@ -96,7 +67,7 @@ class CreateContactsOnMautic implements ShouldQueue
                 ], $request)
             );
 
-            if(!empty($contact['contact'])){
+            if (!empty($contact['contact'])) {
 
                 $result_data = [
                     'id' => $contact['contact']['id'],
@@ -104,16 +75,31 @@ class CreateContactsOnMautic implements ShouldQueue
                 ];
 
                 foreach ($request as $name => $value) {
-                    if(isset($contact['contact']['fields']['core'][$name])){
+                    if (isset($contact['contact']['fields']['core'][$name])) {
                         $result_data[$name] = $contact['contact']['fields']['core'][$name]['value'];
                     }
                 }
 
-                return response()->json([
-                    'status' => true,
-                    'data' => $result_data
-                ], 200);
+                \Log::debug('CreateContactsOnMautic: success created a contact', $result_data);
+
+                return true;
             }
+
+        } catch (\Exception $e) {
+            var_dump([
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            \Log::warning('CreateContactsOnMautic: failed', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            throw $e;
         }
+
     }
 }

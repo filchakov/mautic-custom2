@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\UpdateEmailMautic;
 use Log;
 use URL;
 use Carbon\Carbon;
@@ -96,7 +97,13 @@ class EmailController extends Controller
 
 
         if(!empty($projects_ids) && !empty($segment_id) && \request()->get('source_type', false) == false){
-            return view('builder.choose_source_type', compact('segment_id', 'projects_ids'));
+            $emails_tree = Email::getEmailsInTree();
+            return view('builder.choose_source_type', compact('segment_id', 'projects_ids', 'emails_tree'));
+        }
+
+        if(\request()->get('source_type', false) == 'existing_template'){
+            $url = $this->createEmailsFromExists(\request());
+            return redirect($url);
         }
 
         if(\request()->get('source_type', false) == 'html'){
@@ -277,7 +284,6 @@ class EmailController extends Controller
      */
     public function update($id,Request $request)
     {
-
         $parent_email = Email::findOrfail($id);
 
         if($request->get('source_type', false)){
@@ -373,66 +379,13 @@ class EmailController extends Controller
 
                 $email->save();
 
-                $project = Project::find($email->project_id);
+                UpdateEmailMautic::dispatch($email)->onQueue(env('APP_ENV').'-UpdateEmailMautic');
 
-                $email->body = str_replace('/email_builder/assets/default-logo.png', '/' . $project->logo, $email->body);
-                $email->body = str_replace(['src="/', "src='/"], ['src="https://email-builder.hiretrail.com/'.$project->logo, "src='https://email-builder.hiretrail.com/".$project->logo], $email->body);
-                $email->body = str_replace(['http://dev.webscribble.com', 'https://dev.webscribble.com'], [$project->url, $project->url], $email->body);
-                $email->body = str_replace('width:100%;height:auto;" width="100"', 'height:auto;"', $email->body);
-
-                $email->body = str_replace([
-                    '{sender=project_url}',
-                    '{sender=company_name}',
-                    '{sender=first_name}',
-                    '{sender=last_name}',
-                    '{sender=email_from}',
-                    '{sender=email_for_reply}',
-                ], [
-                    $project->url,
-                    $project->company_name,
-                    $project->from_name,
-                    $project->last_name,
-                    $project->from_email,
-                    $project->relpy_to,
-                ], $email->body);
-
-                try {
-                    $new_mautic_email = [
-                        'name' => $email->title . ' | ' . $project->url,
-                        'subject' => $email->title,
-                        'customHtml' => $email->body,
-                        'utmTags' => [
-                            'utmSource' => $email->utm_source,
-                            'utmMedium' => $email->utm_medium,
-                            'utmCampaign' => $email->utm_name,
-                            'utmContent' => $email->utm_content,
-                        ]
-                    ];
-
-                    $settings = ['userName'   => env('MAUTIC_LOGIN'), 'password'   => env('MAUTIC_PASSWORD')];
-
-                    $initAuth = new ApiAuth();
-
-                    $auth = $initAuth->newAuth($settings, 'BasicAuth');
-
-                    $api = new MauticApi();
-
-                    $contactApi = $api->newApi('emails', $auth, env('MAUTIC_URL'));
-
-                    $contactApi->edit($email->mautic_email_id, $new_mautic_email);
-                } catch (\Exception $e){
-                    Log::warninr('Change tamplate on mautic', [
-                        'error' => $e->getMessage(),
-                        'file' => $e->getFile(),
-                        'line' => $e->getLine(),
-                        'host' => env('MAUTIC_URL')
-                    ]);
-                }
             }
         }
 
-        return redirect()->route('email.customize', ['id' => $request->get('main_template_email_id', $id)]);
-        //return response()->json(['status' => true]);
+        //return redirect()->route('email.customize', ['id' => $request->get('main_template_email_id', $id)]);
+        return response()->json(['status' => true]);
     }
 
     /**
@@ -662,5 +615,43 @@ class EmailController extends Controller
             'Content-type' => 'text/csv',
             'Content-disposition' => 'filename="' . $filename . '"'
         ]);
+    }
+
+    /**
+     * @param \Illuminate\Http\Request $request
+     * @return string
+     */
+    private function createEmailsFromExists($request)
+    {
+        $projects_ids = $request->get('projects', []);
+        $segment_id = $request->get('segment_id', false);
+
+        $source_email = Email::where('id', (int)$request->get('based_email'))->first();
+
+        $parent_email = $source_email->replicate();
+
+        try {
+            $json_element = json_decode($parent_email->json_elements, 1);
+            $json_element['name'] = $request->get('subject_name');
+            $parent_email->json_elements = json_encode($json_element);
+        } catch (\Exception $e){
+
+        }
+
+        $parent_email->project_id = 1;
+        $parent_email->title = $request->get('subject_name');
+        $parent_email->parent_email_id = 0;
+        $parent_email->mautic_email_id = 0;
+        $parent_email->segment_id = $segment_id;
+        $parent_email->save();
+
+        foreach ($projects_ids as $projects_id){
+            $child_email = $parent_email->replicate();
+            $child_email->parent_email_id = $parent_email->id;
+            $child_email->project_id = $projects_id;
+            $child_email->save();
+        }
+
+        return route('email.builder', ['email_id' => $parent_email->id, 'project_id' => 1]);
     }
 }

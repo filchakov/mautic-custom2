@@ -36,7 +36,12 @@
                 </td>
                 <td>
                     <div data-email_id="{{$project->emails->id}}">
-                        <table class="table">
+                        <span class="btn btn-success btn-lg btn-block js_stats_btn js_stats_btn_{{$project->emails->id}}"
+                              data-project-id="{{$project->emails->id}}"
+                        >
+                            Get stats
+                        </span>
+                        <table class="table js_stats_{{$project->emails->id}}_table" style="display: none;">
                             <tr>
                                 <td width="50px">
                                     Subject:
@@ -105,7 +110,14 @@
                             callback();
                         }
 
-                        get_stats({{$project->emails->id}});
+                        $('.js_stats_btn').hover(function () {
+                            get_stats($(this).attr('data-project-id'), function () {});
+                        });
+
+                        $('.js_stats_btn').click(function () {
+                            $('.js_stats_btn_' + $(this).attr('data-project-id')).hide();
+                            $('.js_stats_' + $(this).attr('data-project-id') + '_table').show();
+                        });
 
                     </script>
 
