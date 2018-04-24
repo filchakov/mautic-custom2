@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\UpdateEmailMautic;
+use DOMDocument;
+use DOMXPath;
 use Log;
+use SimpleXMLElement;
 use URL;
 use Carbon\Carbon;
 
@@ -653,5 +656,167 @@ class EmailController extends Controller
         }
 
         return route('email.builder', ['email_id' => $parent_email->id, 'project_id' => 1]);
+    }
+
+    public function tests(Request $request){
+
+        $json = json_decode(urldecode($request->get('body')), 1);
+        $json = collect($json);
+
+        $project_ids = $request->get('projects', []);
+
+        $projects = Project::whereIn('id', $project_ids)->get();
+
+        \App\Providers\ElasticEmailClient\ApiClient::SetApiKey('1d12d50e-fd8a-46cc-8d71-ad073f79eb83');
+
+        foreach ($projects as $project){
+
+            $subject = $json->get('name');
+            $bodyHtml = $json->get('html');
+
+
+            $bodyHtml = str_replace('/email_builder/assets/default-logo.png', '/' . $project->logo, $bodyHtml);
+            $bodyHtml = str_replace(['src="/', "src='/"], ['src="https://email-builder.hiretrail.com/'.$project->logo, "src='https://email-builder.hiretrail.com/".$project->logo], $bodyHtml);
+            $bodyHtml = str_replace(['http://dev.webscribble.com', 'https://dev.webscribble.com'], [$project->url, $project->url], $bodyHtml);
+            $bodyHtml = str_replace('width:100%;height:auto;" width="100"', 'height:auto;"', $bodyHtml);
+
+            $bodyHtml = str_replace([
+                '{sender=project_url}',
+                '{sender=company_name}',
+                '{sender=first_name}',
+                '{sender=last_name}',
+                '{sender=email_from}',
+                '{sender=email_for_reply}',
+            ], [
+                $project->url,
+                $project->company_name,
+                $project->from_name,
+                $project->last_name,
+                $project->from_email,
+                $project->relpy_to,
+            ], $bodyHtml);
+
+
+            $utm_tags = [
+                'utm_source' => $json->get('utm_source'),
+                'utm_medium' => $json->get('utm_medium'),
+                'utm_name' => $json->get('utm_name'),
+                'utm_content' => $json->get('utm_content'),
+            ];
+
+            if(implode('', array_values($utm_tags)) != ''){
+                $bodyHtml = preg_replace_callback('#(<a.*?href=")([^"]*)("[^>]*?>)#i', function($match) use ($utm_tags) {
+                    $url = $match[2];
+                    if (strpos($url, '?') === false) {
+                        $url .= '?';
+                    } else {
+                        $url .= '&';
+                    }
+                    $url .= 'utm_source=' . $utm_tags['utm_source'] . '&utm_medium=' . $utm_tags['utm_medium'] . '&utm_name=' . urlencode($utm_tags['utm_name']) . '&utm_content=' . $utm_tags['utm_content'];
+                    return $match[1] . $url . $match[3];
+                }, $bodyHtml);
+            }
+
+
+
+            $dom = new DomDocument();
+            @$dom->loadHTML($bodyHtml);
+
+            $finder = new DomXPath($dom);
+
+            $cl_job_item = 'rss-job-item';
+            $cl_title = "rss-title";
+            $cl_description = "rss-description";
+
+            $item_job = $finder->query("//*[contains(concat(' ', normalize-space(@class), ' '), ' $cl_job_item ')]");
+            $count_jobs = $item_job->length;
+
+            if(!empty($count_jobs)){
+                $xml_feed_url = $item_job->item(0)->getAttribute('data-rss-url');
+                $xml_feed_data = $this->getFeedData($xml_feed_url);
+
+                for ($i = 0; $i < $count_jobs; $i++){
+
+                    $item_from_rss_feed = current($xml_feed_data);
+
+                    $rss_title = $finder->query("//*[contains(concat(' ', normalize-space(@class), ' '), ' $cl_title ')]")->item($i);
+                    $rss_title->textContent = $item_from_rss_feed->title;
+                    $rss_title->setAttribute('href', $item_from_rss_feed->link);
+
+                    $rss_description = $finder->query("//*[contains(concat(' ', normalize-space(@class), ' '), ' $cl_description ')]")->item($i);
+                    $rss_description->textContent = strip_tags($item_from_rss_feed->description);
+
+                    next($xml_feed_data);
+                }
+            }
+
+            $bodyHtml = $finder->document->saveHTML();
+
+
+            $to = ['filchakov.denis@gmail.com', 'gretchen@webscribble.com'];
+
+            $EEemail = new \App\Providers\ElasticEmailClient\Email();
+
+            try
+            {
+                $response = $EEemail->Send(
+                    $subject,
+                    $project->from_email,
+                    $project->company_name,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    $to,
+                    array(),
+                    array(),
+                    array(),
+                    array(),
+                    array(),
+                    null,
+                    null,
+                    null,
+                    $bodyHtml,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                );
+            }
+            catch (\Exception $e)
+            {
+                \Log::warning('Test email: attempt was failed', ['message' => $e->getMessage()]);
+            }
+        }
+
+        return response(['status' => true]);
+    }
+
+    /**
+     * @param $xml_feed_url
+     * @return array
+     */
+    private function getFeedData($xml_feed_url)
+    {
+        $xml_feed_url = str_replace(' ','', $xml_feed_url);
+
+        $content = file_get_contents($xml_feed_url);
+
+        if(strpos($content, '</channel>') === false){
+            $content .= '</channel></rss>';
+        }
+
+        try {
+            $feed = new SimpleXMLElement($content);
+            $result = ((array)$feed->channel)['item'];
+        } catch (\Exception $e){
+            $result = [];
+        }
+
+        return $result;
     }
 }

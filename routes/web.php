@@ -42,6 +42,7 @@ Route::group(['middleware'=> ['web','auth']], function(){
   Route::post('project/copy_emails','\App\Http\Controllers\ProjectController@copy_emails')->name('project.copy_emails');
 });
 
+Route::post('email/tests','\App\Http\Controllers\EmailController@tests')->name('email.tests');
 //email Routes
 Route::group(['middleware'=> ['web','auth']],function(){
   Route::resource('email','\App\Http\Controllers\EmailController');

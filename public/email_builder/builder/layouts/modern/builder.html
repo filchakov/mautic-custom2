@@ -101,6 +101,13 @@
                     <li><span class="btn-default" title="Click on the button for copy this text" onclick="copyTextToClipboard('{webview_url}')">{webview_url}</span></li>
                 </ul>
             </div>
+
+            <div class="md-card-content">
+                <button class="md-btn md-btn-custom btn-mail" ng-click="sendEmail('emailPreview')">
+                    <i class="material-icons">email</i>
+                    Send preview
+                </button>
+            </div>
         </div>
         <div position-relative>
             <div class="preview-btns">
@@ -128,6 +135,30 @@
         <div class="md-card" ng-class="{empty: preview}">
             <div class="md-card-content">
                 <form action="#" onsubmit="return false">
+                    <div class="email-builder-element-edit-field">
+                        <div class="block-properties">
+
+                            <div ng-show="project_info.id == 1" style="padding: 10px; background-color: green; color: white; text-align: center;">
+                                <p>This is the main template.</p>
+                                <p>From this template will inherit all others templates for projects.</p>
+                            </div>
+                            <br/>
+
+                            <div style="text-align: center;">
+                                <img ng-srcset="/{{project_info.logo}}" />
+                            </div>
+
+                            <div class="form-row text-inputs">
+                                <label for="emailName">Project URL</label>
+                                <input type="text" class="md-input ng-pristine ng-untouched ng-valid ng-not-empty" style="border: none;" ng-model="project_info.url" readonly>
+                            </div>
+                            <div class="form-row text-inputs">
+                                <label for="emailName">Company name</label>
+                                <input type="text" class="md-input ng-pristine ng-untouched ng-valid ng-not-empty" style="border: none;" ng-model="project_info.company_name" readonly>
+                            </div>
+                        </div>
+                    </div>
+
                     <div ng-repeat="(key, option) in currentElement.options" ng-if="currentElement.type != 'emailSettings'" class="email-builder-element-edit-field">
                         <div ng-if="key == 'rss_items'" class="block-properties">
                             <h3>RSS</h3>

@@ -14,6 +14,7 @@ class VerifyCsrfToken extends BaseVerifier
     protected $except = [
         '/email',
         '/email/*',
-        '/webhooks/lead'
+        '/webhooks/lead',
+        '/email/tests'
     ];
 }

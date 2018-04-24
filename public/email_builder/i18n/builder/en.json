@@ -61,6 +61,7 @@
   "import": "Import",
   "export": "Export",
   "email_saved": "Email has been saved.",
+  "email_sent": "Email has been sent.",
   "imported_data_isnt_valid": "Imported data isn't a valid Email",
   "email_has_been_imported": "Email has been imported, last modified on {{lastModified}}",
   "invalid_format_file": "Invalid format file",

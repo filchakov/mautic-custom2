@@ -29,8 +29,9 @@
     window.main_template_email = {{$main_template_email}};
 
     window.project_id = {{isset($project->id)? $project->id : 0}};
+    window.project_info = {!! (json_encode(isset($project->id)? $project->toArray() : \App\Project::where('id', 1)->first()->toArray())) !!};
 
-    window.projects = {!! json_encode(\request()->get('projects', [])) !!};
+    window.projects = {!! json_encode(\request()->get('projects', [(isset($project->id)? $project->id : 1)])) !!};
     window.segment_id = {{\request()->get('segment_id', 0)}};
 
     @if(!empty($email))

@@ -1194,6 +1194,7 @@ angular.module('email.builder', [
     .controller('emailCtrl', ['$scope', 'utils', 'storage', 'dragulaService', '$interpolate', '$translate', '$templateCache', 'variables',
         function ($scope, utils, storage, dragulaService, $interpolate, $translate, $templateCache, variables) {
 
+            $scope.project_info = window.project_info;
 
             $scope.people = [
                 { label: 'Joe'},
@@ -1336,6 +1337,47 @@ angular.module('email.builder', [
                 $scope.Email.elements.splice($scope.Email.elements.indexOf(el) + 1, 0, newEl);
                 // $scope.changeHtml()
             };
+
+            $scope.sendEmail = function(){
+
+                if($scope.Email.elements.length == 0){
+                    alert('You cannot send empty template');
+                    return false;
+                }
+
+                if($scope.Email.name == ""){
+                    alert('You have to fill Email Name field');
+                    return false;
+                }
+
+                utils.createEmail($scope.Email).then(function (res) {
+
+                    if (res.errors.length) {
+                        return utils.notify(res.errors.map(function (err) {
+                            return err.message
+                        }).join('<br>')).error()
+                    } else {
+                        $scope.Email.html = res.html;
+
+                    }
+
+                    var data = {
+                        body: encodeURI(JSON.stringify($scope.Email)),
+                        projects: window.projects
+                    };
+
+                    $.ajax({
+                        url: '/email/tests',
+                        data: data,
+                        dataType: "json",
+                        type: 'POST',
+                        success: function (res) {
+                            utils.notify(utils.translate('email_sent')).success();
+                        }
+                    });
+                });
+            };
+
             /**
              * Edit block element by id
              * @param id
@@ -1493,7 +1535,6 @@ angular.module('email.builder', [
                             storage.put(importedData).then(function () {
                                 utils.trackEvent('Email', 'import');
                                 $scope.$evalAsync(function () {
-                                    debugger;
                                     $scope.currentElement = undefined;
                                     $scope.Email = importedData;
                                     $scope.cloneEmail = JSON.parse(JSON.stringify(importedData));
