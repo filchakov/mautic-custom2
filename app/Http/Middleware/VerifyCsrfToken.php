@@ -15,6 +15,7 @@ class VerifyCsrfToken extends BaseVerifier
         '/email',
         '/email/*',
         '/webhooks/lead',
-        '/email/tests'
+        '/email/tests',
+        '/email/urlchecking'
     ];
 }

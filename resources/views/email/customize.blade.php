@@ -22,7 +22,7 @@
             <tr>
                 <td>{!!$project->id!!}</td>
                 <td>
-                    <img height="30px" src="/{!!$project->logo!!}" />
+                    <img height="30px" src="https://email-builder.hiretrail.com/{!!$project->logo!!}" />
                 </td>
                 <td>{!!$project->url!!}</td>
                 <td style="text-align: center;">
@@ -36,11 +36,12 @@
                 </td>
                 <td>
                     <div data-email_id="{{$project->emails->id}}">
-                        <span class="btn btn-success btn-lg btn-block js_stats_btn js_stats_btn_{{$project->emails->id}}"
-                              data-project-id="{{$project->emails->id}}"
-                        >
-                            Get stats
-                        </span>
+                        <div class="btn-group btn-group-justified">
+                            <span class="btn btn-success btn-lg js_stats_btn js_stats_btn_{{$project->emails->id}}" data-project-id="{{$project->emails->id}}">
+                                Get stats
+                            </span>
+                            <a href="{{route('email.checking', ['id' => $project->emails->id])}}" class="btn btn-lg btn-warning">Create test campaign</a>
+                        </div>
                         <table class="table js_stats_{{$project->emails->id}}_table" style="display: none;">
                             <tr>
                                 <td width="50px">
@@ -73,7 +74,6 @@
                                 <td colspan="2">
                                     <div class="btn-group">
                                         <a href="https://m.hiretrail.com/s/emails/view/{{$project->emails->mautic_email_id}}" target="_blank" class="btn btn-success disabled">Report of clicks</a>
-                                        <a href="{{route('email.test_campaign', ['id' => $project->emails->id])}}" target="_blank" class="btn btn-warning disabled">Create test campaign</a>
                                     </div>
                                 </td>
                             </tr>

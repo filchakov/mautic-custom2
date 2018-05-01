@@ -74,6 +74,141 @@ class EmailController extends Controller
         return view('email.customize', compact('title', 'projects', 'main_template_email', 'id', 'projects_without_email', 'parent_email'));
     }
 
+    public function checking($id){
+
+        $parent_email = Email::find($id);
+        $emails = Email::where('id', $id)->get();
+
+        $title = $parent_email->title;
+
+        $settings = ['userName'   => env('MAUTIC_LOGIN'), 'password'   => env('MAUTIC_PASSWORD')];
+        $initAuth = new ApiAuth();
+        $auth = $initAuth->newAuth($settings, 'BasicAuth');
+        $api = new MauticApi();
+        $contactApi = $api->newApi('emails', $auth, env('MAUTIC_URL'));
+
+
+        $links = [];
+        $images = [];
+        $logo = [];
+
+        foreach ($emails as $email){
+
+            $result = $contactApi->get($email->mautic_email_id);
+
+            if(!isset($result['errors'])){
+
+                $dom = new DOMDocument;
+                @$dom->loadHTML($result['email']['customHtml']);
+
+                /**
+                 * Checking logo start
+                 */
+                $original_logo = file_get_contents('https://email-builder.hiretrail.com/' . $email->project()->first()->logo);
+
+                $logo[$email->id] = false;
+
+                foreach ($dom->getElementsByTagName('img') as $img){
+                    $url = $img->getAttribute('src');
+                    try {
+                        $current_logo = file_get_contents($url);
+
+                        if(sha1($current_logo) == sha1($original_logo) && $logo[$email->id] == false){
+                            $logo[$email->id] = true;
+                        }
+
+                        $images[$email->id][$url] = true;
+                    } catch (\Exception $e){
+                        $images[$email->id][$url] = false;
+                    }
+                }
+                /**
+                 * Checking logo finish
+                 */
+
+
+                /**
+                 * Checking links start
+                 */
+                foreach ($dom->getElementsByTagName('a') as $link){
+
+                    $url = $link->getAttribute('href');
+
+                    try {
+                        if(empty($url)){
+                            throw new \Exception('Empty URL');
+                        } else {
+
+                            $text = $link->textContent;
+                            $title_page = '<div class="loader"></div>';
+
+                            if(filter_var($url, FILTER_VALIDATE_URL) == false && (!substr_count($url, '{') && !substr_count($url, '}'))){
+                                throw new \Exception('URL is not valid');
+                            }
+
+                            if(substr_count($url, '?') > 1){
+                                throw new \Exception('URL is not valid. Do you use a symbol "?" twice in URL');
+                            }
+
+
+                            if(substr_count($url, '{') && substr_count($url, '}')){
+                                $text = 'This is placeholder';
+                                $title_page = ' - ';
+                            }
+
+                            $links[$email->id][$url] = [
+                                'status' => null,
+                                'text' => $text,
+                                'title_page' => $title_page
+                            ];
+
+                        }
+                    } catch (\Exception $e){
+                        $links[$email->id][$url] = ['status' => false, 'text' => $e->getMessage(), 'title_page' => 'false'];
+                    }
+                }
+                /**
+                 * Checking links finish
+                 */
+
+            }
+        }
+
+        return view('email.checking', compact('emails', 'parent_email', 'title', 'links', 'images', 'logo'));
+    }
+
+    public function urlchecking(Request $request){
+
+        try {
+
+            $url = $request->get('url');
+
+            $content_from_page = new DOMDocument();
+            @$content_from_page->loadHTML(file_get_contents($url));
+
+            if(substr_count($url, '?') > 1){
+                throw new \Exception('URL is not valid. Do you use a symbol "?" twice in URL');
+            }
+
+            $result = [
+                'status' => true,
+                'text' => '',
+                'title_page' => $content_from_page->getElementsByTagName('title')[0]->textContent
+            ];
+
+        } catch (\Exception $e){
+
+            $result = [
+                'status' => false,
+                'text' => 'ERROR',
+                'title_page' => 'ERROR'
+            ];
+
+        }
+
+        return response($result);
+    }
+
     /**
      * Show the form for creating a new resource.
      *

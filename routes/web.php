@@ -46,9 +46,11 @@ Route::post('email/tests','\App\Http\Controllers\EmailController@tests')->name('
 //email Routes
 Route::group(['middleware'=> ['web','auth']],function(){
   Route::resource('email','\App\Http\Controllers\EmailController');
+  Route::post('email/urlchecking','\App\Http\Controllers\EmailController@urlchecking')->name('email.urlchecking');
   Route::post('email/create','\App\Http\Controllers\EmailController@create');
   Route::post('email/{id}','\App\Http\Controllers\EmailController@update');
   Route::get('email/{id}/customize','\App\Http\Controllers\EmailController@customize')->name('email.customize');
+  Route::get('email/{id}/checking','\App\Http\Controllers\EmailController@checking')->name('email.checking');
   Route::get('email/{id}/stats','\App\Http\Controllers\EmailController@get_stats_email')->name('email.stats');
   Route::get('email/{id}/test_campaign','\App\Http\Controllers\EmailController@test_campaign')->name('email.test_campaign');
   Route::post('email/{id}/test_campaign','\App\Http\Controllers\EmailController@create_test_campaign')->name('email.create_test_campaign');
