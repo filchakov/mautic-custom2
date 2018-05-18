@@ -432,6 +432,10 @@ class EmailController extends Controller
 
             $content = file_get_contents(\request()->file('source_template')->getRealPath());
 
+            if(strpos($content, '{unsubscribe_text}') === false){
+                $content = str_replace('</body>','<p style="text-align: center; background-color: #ffffff; padding: 20px;">{unsubscribe_text}</p></body>', $content);
+            }
+
             foreach ($emails as $email){
                 $email->title = $request->get('name', '');
                 $email->body = $content;
@@ -522,8 +526,8 @@ class EmailController extends Controller
             }
         }
 
-        //return redirect()->route('email.customize', ['id' => $request->get('main_template_email_id', $id)]);
-        return response()->json(['status' => true]);
+        return redirect()->route('email.customize', ['id' => $request->get('main_template_email_id', $id)]);
+        //return response()->json(['status' => true]);
     }
 
     /**
