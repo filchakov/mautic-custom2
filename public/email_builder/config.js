@@ -179,9 +179,9 @@ const emailBuilderConfigurations = {
             backgroundColor: '#ffffff',
             altTag: '',
             linkTo: {
-                type: 'none',
+                type: 'link',
                 typeOptions: ['link', 'email', 'none'],
-                link: ''
+                link: '{sender=project_url}'
             }
         },
         template: '<table width="100%" class="main" cellspacing="0" cellpadding="0" border="0" align="center" style="display: table; background-color: {{element.options.backgroundColor}};" data-type="image">\n    <tbody>\n    <tr>\n        <td align="{{ element.options.align }}" style="padding: {{ element.options.padding | arrToPadding  }};" class="image">\n          <img border="0" align="one_image" link="element.options.linkTo" style="display:block;" ng-style="{width: element.options.width}" alt="{{element.options.altTag}}" src="https://email-builder.hiretrail.com/email_builder/assets/default-logo.png" tabindex="0">       </td>\n    </tr>\n    </tbody>\n</table>'

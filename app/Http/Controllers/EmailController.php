@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Campaign;
 use App\Jobs\UpdateEmailMautic;
 use DOMDocument;
 use DOMXPath;
@@ -182,6 +183,16 @@ class EmailController extends Controller
         try {
 
             $url = $request->get('url');
+
+            preg_match("/^{(.*)}/", $url, $is_placeholder);
+
+            if(!empty($is_placeholder)){
+                return [
+                    'status' => true,
+                    'text' => 'Placeholder',
+                    'title_page' => 'Placeholder'
+                ];
+            }
 
             $content_from_page = new DOMDocument();
             @$content_from_page->loadHTML(file_get_contents($url));
@@ -526,8 +537,8 @@ class EmailController extends Controller
             }
         }
 
-        return redirect()->route('email.customize', ['id' => $request->get('main_template_email_id', $id)]);
-        //return response()->json(['status' => true]);
+        //return redirect()->route('email.customize', ['id' => $request->get('main_template_email_id', $id)]);
+        return response()->json(['status' => true]);
     }
 
     /**

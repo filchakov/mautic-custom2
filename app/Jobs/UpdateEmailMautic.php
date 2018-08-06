@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Campaign;
 use App\Project;
 
 use Mautic\Auth\ApiAuth;
@@ -86,6 +87,20 @@ class UpdateEmailMautic implements ShouldQueue
             $contactApi = $api->newApi('emails', $auth, env('MAUTIC_URL'));
 
             $contactApi->edit($email->mautic_email_id, $new_mautic_email);
+
+
+            $campaign = Campaign::where([
+                'email_id' => $this->model->id,
+                'segment_id' => $this->model->segment_id,
+                'project_id' => $this->model->project_id
+            ])->firstOrFail();
+
+
+            $campaignApi = $api->newApi('campaigns', $auth, env('MAUTIC_URL'));
+            $campaignApi->edit($campaign->campaign_id_mautic, [
+                'name' => $email->title . ' | ' . $project->url,
+            ]);
+
         } catch (\Exception $e){
             Log::warninr('Change tamplate on mautic', [
                 'error' => $e->getMessage(),

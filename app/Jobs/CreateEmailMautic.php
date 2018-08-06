@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Campaign;
 use Log;
 
 use Mautic\MauticApi;
@@ -165,6 +166,15 @@ class CreateEmailMautic implements ShouldQueue
             ];
 
             $campaigns = $campaignsApi->create($campaigns);
+
+            $campaign = new Campaign();
+            $campaign->email_id = $this->model->id;
+            $campaign->campaign_id_mautic = $campaigns['campaign']['id'];
+            $campaign->segment_id = $model->segment_id;
+            $campaign->project_id = $model->project_id;
+            $campaign->save();
+
+
             Log::info('$campaigns ', $campaigns);
         } catch (\Exception $e){
             Log::warning('Problem with creating email', [
