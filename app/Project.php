@@ -91,6 +91,22 @@ class Project extends Model
 
             $model->save();
 
+
+            $segments = Segment::all();
+
+            foreach ($segments as $segment) {
+
+                if(SegmentsToProjects::where(['segment_id' => $segment->id, 'project_id' => $model->id])->count() == 0){
+                    $segment_to_projects = new SegmentsToProjects();
+                    $segment_to_projects->project_id = $model->id;
+                    $segment_to_projects->segment_id = $segment->id;
+                    $segment_to_projects->filters = $segment->filters;
+                    $segment_to_projects->save();
+                }
+
+                sleep(rand(1,3));
+            }
+
         });
 
     }

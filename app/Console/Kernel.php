@@ -2,11 +2,13 @@
 
 namespace App\Console;
 
+use App\Console\Commands\CreateSegments;
 use App\Console\Commands\MatchOldMauticSegments;
 use App\Console\Commands\MauticSyncUTM;
 use App\Console\Commands\AddTagsForAllLeads;
 use App\Console\Commands\DeleteBouncedContacts;
 
+use App\Console\Commands\ProjectSync;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -22,6 +24,8 @@ class Kernel extends ConsoleKernel
         DeleteBouncedContacts::class,
         AddTagsForAllLeads::class,
         MatchOldMauticSegments::class,
+        ProjectSync::class,
+        CreateSegments::class,
     ];
 
     /**

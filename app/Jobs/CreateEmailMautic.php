@@ -175,6 +175,14 @@ class CreateEmailMautic implements ShouldQueue
             $campaign->save();
 
 
+
+            Log::info('Campaign ', [
+                $this->model->id,
+                $campaigns['campaign']['id'],
+                $model->segment_id,
+                $model->project_id
+            ]);
+
             Log::info('$campaigns ', $campaigns);
         } catch (\Exception $e){
             Log::warning('Problem with creating email', [
