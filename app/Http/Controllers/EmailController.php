@@ -740,8 +740,13 @@ class EmailController extends Controller
 
         $email = Email::findOrFail($id);
 
+        $segment_ids = array_merge(
+            SegmentsToProjects::where('project_id', $email->project_id)->pluck('mautic_segment_id')->toArray(),
+            [30]
+        );
+
         $mautic = app('mautic');
-        $emails = $mautic->getClient('segments')->getList();
+        $emails = $mautic->getClient('segments')->getList("ids:" . implode(',', $segment_ids));
 
         $campaigns_from_mautic = collect($emails['lists']);
 
@@ -752,8 +757,7 @@ class EmailController extends Controller
                     'name' => $item['name'],
                     'alias' => $item['alias']
                 ]];
-            })
-            ->except(SegmentsToProjects::all()->pluck('mautic_segment_id')->merge([29])->toArray());
+            });
 
         return view('email.create_test_campaign', compact('segments_mautic', 'email'));
     }
